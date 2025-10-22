@@ -18,3 +18,14 @@ This version introduces a complete functional skeleton of the application.
 No real embedding computations yet. UI and structure ready for integration.
 
 ---
+
+### [0.2.0] - 2025-10-22
+#### Added
+- BaseEmbedder, ClapEmbedder
+- Computations for audio & text inputs
+- Basic metrics and visualisations
+
+#### Changed
+- Refactored Application class to preload models and store them in st.session_state
+
+---

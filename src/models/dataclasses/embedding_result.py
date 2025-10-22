@@ -4,6 +4,6 @@ import torch
 
 @dataclass
 class EmbeddingResult:
-    text_embedding: torch.Tensor
-    audio_embedding: torch.Tensor
-    similarity: float
+    vector: torch.Tensor
+    source: str
+    model_name: str

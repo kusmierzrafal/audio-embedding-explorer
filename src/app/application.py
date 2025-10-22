@@ -10,6 +10,9 @@ from src.ui.model_comparison_view import ModelComparisonView
 from src.ui.similarity_ranking_view import SimilarityRankingView
 from src.ui.pseudo_captioning_view import PseudoCaptioningView
 from src.ui.local_db_view import LocalDbView
+from src.utils.env_loader import load_model_env
+from src.utils.path_resolver import resolve_paths
+from src.domain.embeddings.clap_embedder import ClapEmbedder
 
 
 class Application:
@@ -28,7 +31,32 @@ class Application:
             ViewName.LOCAL_DB: LocalDbView,
         }
 
+    def load_models(self) -> None:
+        if "models" in st.session_state:
+            return
+
+        st.info("Loading env configuration...")
+        env = load_model_env()
+        paths = resolve_paths()
+
+        with st.spinner("Loading models: CLAP & SLAP..."):
+            clap_embedder = ClapEmbedder(
+                model_id=env.clap_hf_name,
+                model_dir=paths.models_dir / env.clap_dir_name,
+            )
+            clap_embedder.load_model()
+
+        st.session_state["models"] = {
+            "CLAP": clap_embedder,
+        }
+
+        st.success("Models loaded.")
+
     def run(self) -> None:
+        if "models" not in st.session_state:
+            with st.spinner("Models initialization..."):
+                self.load_models()
+            st.rerun()
         with st.sidebar:
             st.markdown(f"## {PAGE_TITLE}")
 
