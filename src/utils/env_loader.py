@@ -1,7 +1,9 @@
-from src.config.env_keys import CLAP_HF_NAME, CLAP_DIR_NAME
-from src.models.dataclasses.model_env import ModelEnv
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+
+from src.config.env_keys import CLAP_DIR_NAME, CLAP_HF_NAME
+from src.models.dataclasses.model_env import ModelEnv
 
 
 def load_model_env() -> ModelEnv:

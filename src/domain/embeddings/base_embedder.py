@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
+
 from src.models.dataclasses.embedding_result import EmbeddingResult
 
 

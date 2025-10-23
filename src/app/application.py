@@ -1,18 +1,20 @@
+from typing import Dict, Type
+
 import streamlit as st
 from streamlit_option_menu import option_menu
-from typing import Dict, Type
+
+from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
+from src.domain.embeddings.clap_embedder import ClapEmbedder
 from src.models.enums.view_names import ViewName
-from src.config.navbar_config import PAGE_TITLE, NAVBAR_ICONS, NAVBAR_STYLES
-from src.ui.shared.base_view import BaseView
 from src.ui.home_view import HomeView
-from src.ui.pair_analysis_view import PairAnalysisView
-from src.ui.model_comparison_view import ModelComparisonView
-from src.ui.similarity_ranking_view import SimilarityRankingView
-from src.ui.pseudo_captioning_view import PseudoCaptioningView
 from src.ui.local_db_view import LocalDbView
+from src.ui.model_comparison_view import ModelComparisonView
+from src.ui.pair_analysis_view import PairAnalysisView
+from src.ui.pseudo_captioning_view import PseudoCaptioningView
+from src.ui.shared.base_view import BaseView
+from src.ui.similarity_ranking_view import SimilarityRankingView
 from src.utils.env_loader import load_model_env
 from src.utils.path_resolver import resolve_paths
-from src.domain.embeddings.clap_embedder import ClapEmbedder
 
 
 class Application:

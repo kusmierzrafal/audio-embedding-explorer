@@ -1,16 +1,15 @@
+from pathlib import Path
+
 import streamlit as st
 
 from src.domain.metrics import cosine_similarity
 from src.domain.visualization import plot_embedding_heatmap, plot_embedding_pca
 from src.ui.shared.base_view import BaseView
-from pathlib import Path
 
 
 class PairAnalysisView(BaseView):
     title = "Pair Analysis"
-    description = (
-        "Analyze one audio–text pair using CLAP, SLAP, or both models. "
-    )
+    description = "Analyze one audio–text pair using CLAP, SLAP, or both models. "
 
     def render(self) -> None:
         self.header()
@@ -40,4 +39,3 @@ class PairAnalysisView(BaseView):
             plot_embedding_heatmap(audio_emb.vector, text_emb.vector)
             st.subheader("2D PCA projection")
             plot_embedding_pca(audio_emb.vector, text_emb.vector)
-

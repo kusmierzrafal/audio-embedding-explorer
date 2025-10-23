@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from src.models.dataclasses.project_paths import ProjectPaths
 
 

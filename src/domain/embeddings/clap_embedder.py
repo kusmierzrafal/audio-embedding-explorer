@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from pathlib import Path
-import torch
+
 import librosa
+import torch
 from huggingface_hub import snapshot_download
-from transformers import ClapModel, AutoProcessor, AutoTokenizer
+from transformers import AutoProcessor, AutoTokenizer, ClapModel
 
 from src.config.error_messages import ERROR_MSG
 from src.domain.embeddings.base_embedder import BaseEmbedder
@@ -24,10 +26,10 @@ class ClapEmbedder(BaseEmbedder):
 
     def embed_text(self, text: str) -> EmbeddingResult:
         if not self.model or not self.tokenizer:
-            raise RuntimeError(ERROR_MSG['MODEL_NOT_LOADED'])
+            raise RuntimeError(ERROR_MSG["MODEL_NOT_LOADED"])
 
         if not text.strip():
-            raise ValueError(ERROR_MSG['EMPTY_TEXT_INPUT'])
+            raise ValueError(ERROR_MSG["EMPTY_TEXT_INPUT"])
 
         text_input = self.tokenizer(text, return_tensors="pt")
         with torch.no_grad():
@@ -38,7 +40,7 @@ class ClapEmbedder(BaseEmbedder):
 
     def embed_audio(self, audio_path: Path) -> EmbeddingResult:
         if not self.model or not self.processor:
-            raise RuntimeError(ERROR_MSG['MODEL_NOT_LOADED'])
+            raise RuntimeError(ERROR_MSG["MODEL_NOT_LOADED"])
 
         if not audio_path.exists():
             raise FileNotFoundError(f"{ERROR_MSG['MODEL_NOT_LOADED']} {audio_path}")
@@ -46,9 +48,13 @@ class ClapEmbedder(BaseEmbedder):
         waveform, sr = librosa.load(audio_path, sr=48000, mono=True)
         waveform = waveform.astype("float32")
 
-        audio_input = self.processor(audio=[waveform], return_tensors="pt", sampling_rate=sr)
+        audio_input = self.processor(
+            audio=[waveform], return_tensors="pt", sampling_rate=sr
+        )
         with torch.no_grad():
             features = self.model.get_audio_features(**audio_input)
 
         features = torch.nn.functional.normalize(features, p=2, dim=-1)
-        return EmbeddingResult(vector=features, source="audio", model_name=self.model_id)
+        return EmbeddingResult(
+            vector=features, source="audio", model_name=self.model_id
+        )

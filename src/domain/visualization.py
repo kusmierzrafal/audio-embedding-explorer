@@ -1,9 +1,10 @@
+import io
+
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.decomposition import PCA
 import streamlit as st
 import torch
-import io
+from sklearn.decomposition import PCA
 
 
 def plot_embedding_heatmap(audio_emb: torch.Tensor, text_emb: torch.Tensor) -> None:
