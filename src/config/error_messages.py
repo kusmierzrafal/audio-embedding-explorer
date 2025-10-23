@@ -7,7 +7,7 @@ ERROR_MSG: dict[str, str] = dict(
     TOKENIZER_NOT_LOADED="Tokenizer or model is not loaded. "
     "Ensure load_model() was called.",
     # INPUTS
-    EMPTY_TEXT_INPUT="Text input is empty. " "Please provide a valid text prompt.",
+    EMPTY_TEXT_INPUT="Text input is empty. Please provide a valid text prompt.",
     AUDIO_FILE_NOT_FOUND="Audio file not found at",
     INVALID_AUDIO_FORMAT="Unsupported audio format. "
     "Please upload a valid .wav or .mp3 file.",
