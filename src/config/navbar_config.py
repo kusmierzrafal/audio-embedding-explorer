@@ -1,4 +1,5 @@
 from typing import Dict
+
 from src.models.enums.view_names import ViewName
 
 PAGE_TITLE = "Audio Embedding Explorer"
