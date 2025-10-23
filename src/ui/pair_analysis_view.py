@@ -20,7 +20,7 @@ class PairAnalysisView(BaseView):
             "Select mode",
             ["CLAP", "SLAP", "CLAP vs SLAP"],
             horizontal=True,
-        )
+        )  # noqa: F841
         audio = st.file_uploader("Audio file", type=["wav", "mp3"])
         text = st.text_area("Text prompt", placeholder="e.g. calm piano")
 
