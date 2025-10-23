@@ -1,0 +1,25 @@
+name: Ruff (PR)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Lint (with inline GitHub annotations)
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: check --output-format=github .
+
+      # Enforce formatting (no changes allowed in CI)
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check .
