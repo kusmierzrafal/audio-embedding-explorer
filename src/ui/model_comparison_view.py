@@ -1,4 +1,5 @@
 import streamlit as st
+
 from src.ui.shared.base_view import BaseView
 
 
@@ -13,4 +14,3 @@ class ModelComparisonView(BaseView):
         self.header()
 
         st.markdown("**Demo dataset:** 10 audio clips")
-

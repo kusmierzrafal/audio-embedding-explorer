@@ -1,4 +1,5 @@
 import streamlit as st
+
 from src.config.navbar_config import PAGE_TITLE
 from src.ui.shared.base_view import BaseView
 
@@ -6,9 +7,10 @@ from src.ui.shared.base_view import BaseView
 class HomeView(BaseView):
     title = PAGE_TITLE
     description = (
-         "A tool for comparing and visualizing audio–text embeddings, "
-         "that allows users to upload audio files, enter text, "
-         "and analyze how embedding models CLAP and SLAP interpret the meaning of the provided data."
+        "A tool for comparing and visualizing audio–text embeddings, "
+        "that allows users to upload audio files, enter text, "
+        "and analyze how embedding models CLAP and SLAP interpret the meaning of "
+        "the provided data."
     )
 
     def render(self) -> None:

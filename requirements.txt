@@ -12,6 +12,7 @@ pandas>=2.2
 tqdm>=4.66
 SQLAlchemy>=2.0
 sqlite-utils>=3.36
+ruff==0.8.4
 
 torch~=2.9.0
 dotenv~=0.9.9
