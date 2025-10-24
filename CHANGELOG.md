@@ -6,6 +6,17 @@ All project changes will be documented in this file.
 Sections: Added / Changed / Fixed / Notes  
 
 ---
+### [0.5.0] - 2025-10-24
+#### Added
+- View `similarity_ranking_view.py` that creates ranking of audio and text similarity
+
+### Notes
+- Tab Text → Audio - user inputs text description, uploads multiple audio files 
+and receives a table with ranked similarity and audio previews.
+- Tab Audio → Text - user uploads one audio file, inputs multiple text descriptions 
+and gets a table with ranked similarity.
+- 
+---
 
 ### [0.4.0] - 2025-10-24
 #### Added
