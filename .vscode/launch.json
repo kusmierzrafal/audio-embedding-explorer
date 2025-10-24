@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "WIMU Audio Embedding Explorer",
+      "request": "launch",
+      "module": "streamlit",
+      "type": "debugpy",
+      "args": [
+        "run",
+        "main.py"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}

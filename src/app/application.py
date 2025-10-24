@@ -3,6 +3,8 @@ from typing import Dict, Type
 import streamlit as st
 from streamlit_option_menu import option_menu
 
+from src.models.enums.available_models import AvailableModel
+from src.domain.embeddings.embeddings_manager import ModelsManager
 from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
 from src.models.enums.view_names import ViewName
 from src.ui.home_view import HomeView
@@ -30,7 +32,34 @@ class Application:
             ViewName.LOCAL_DB: LocalDbView,
         }
 
+<<<<<<< Updated upstream
     def run(self) -> None:
+=======
+    def load_models(self) -> None:
+        if "models_manager" in st.session_state:
+            return
+
+        st.spinner("Loading env configuration...")
+        # env = load_model_env()
+        paths = resolve_paths()
+
+        models_manager = ModelsManager(paths.models_dir)
+        st.session_state["models_manager"] = models_manager
+        
+        # with st.spinner("Loading models..."):
+        #     for model_name in AvailableModel:
+        #         models_manager.get_model(model_name)
+        #         st.info(f"Loaded model: {model_name}")
+
+        # st.success("Models loaded.")
+
+
+    def run(self) -> None:
+        if "models_manager" not in st.session_state:
+            with st.spinner("Models initialization..."):
+                self.load_models()
+            st.rerun()
+>>>>>>> Stashed changes
         with st.sidebar:
             st.markdown(f"## {PAGE_TITLE}")
 
