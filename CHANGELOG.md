@@ -7,7 +7,19 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
-### [0.2.0] - 2025-10-23
+### [0.4.0] - 2025-10-24
+#### Added
+- TSNE & UMAP reduce dimensions methods in reduce_embeddings_dimensionality function
+
+#### Changed
+- PCA plotting function
+
+#### Removed
+- CLAP heatmap plot due to lack of analytical value and poor interpretability
+
+---
+
+### [0.3.0] - 2025-10-23
 #### Added
 - GitHub Actions workflow for Ruff linting and formatting checks on pull requests
 - Ruff configuration in `pyproject.toml` with Python 3.13 target and basic linting rules
@@ -23,6 +35,17 @@ Pull requests now require passing Ruff checks before merging. This ensures consi
 
 ---
 
+### [0.2.0] - 2025-10-22
+#### Added
+- BaseEmbedder, ClapEmbedder
+- Computations for audio & text inputs
+- Basic metrics and visualisations
+
+#### Changed
+- Refactored Application class to preload models and store them in st.session_state
+
+---
+
 ### [0.1.0] - 2025-10-20
 #### Added
 - Implemented full project structure (`src/`, `app/`, `config/`, `domain/`, `models/`, `ui/`, `utils/`, `assets/`)
@@ -32,16 +55,5 @@ Pull requests now require passing Ruff checks before merging. This ensures consi
 #### Notes
 This version introduces a complete functional skeleton of the application.
 No real embedding computations yet. UI and structure ready for integration.
-
----
-
-### [0.2.0] - 2025-10-22
-#### Added
-- BaseEmbedder, ClapEmbedder
-- Computations for audio & text inputs
-- Basic metrics and visualisations
-
-#### Changed
-- Refactored Application class to preload models and store them in st.session_state
 
 ---

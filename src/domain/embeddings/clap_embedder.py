@@ -32,11 +32,17 @@ class ClapEmbedder(BaseEmbedder):
             raise ValueError(ERROR_MSG["EMPTY_TEXT_INPUT"])
 
         text_input = self.tokenizer(text, return_tensors="pt")
+
         with torch.no_grad():
             features = self.model.get_text_features(**text_input)
+            normalized_features = torch.nn.functional.normalize(features, p=2, dim=-1)
 
-        features = torch.nn.functional.normalize(features, p=2, dim=-1)
-        return EmbeddingResult(vector=features, source="text", model_name=self.model_id)
+        return EmbeddingResult(
+            vector=features,
+            normalized_vector=normalized_features,
+            source="text",
+            model_name=self.model_id,
+        )
 
     def embed_audio(self, audio_path: Path) -> EmbeddingResult:
         if not self.model or not self.processor:
@@ -51,10 +57,14 @@ class ClapEmbedder(BaseEmbedder):
         audio_input = self.processor(
             audio=[waveform], return_tensors="pt", sampling_rate=sr
         )
+
         with torch.no_grad():
             features = self.model.get_audio_features(**audio_input)
+            normalized_features = torch.nn.functional.normalize(features, p=2, dim=-1)
 
-        features = torch.nn.functional.normalize(features, p=2, dim=-1)
         return EmbeddingResult(
-            vector=features, source="audio", model_name=self.model_id
+            vector=features,
+            normalized_vector=normalized_features,
+            source="audio",
+            model_name=self.model_id,
         )
