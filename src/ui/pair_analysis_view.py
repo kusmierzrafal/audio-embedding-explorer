@@ -31,7 +31,8 @@ class PairAnalysisView(BaseView):
             st.info("Please select an embedder model to continue.")
             return
 
-        embedder = embedders_manager.get_embedder(selected_model)
+        with st.spinner("Loading embedder..."):
+            embedder = embedders_manager.get_embedder(selected_model)
         modalities = embedders_manager.get_embedder_modalities(embedder)
 
         if "audio" in modalities and "text" in modalities:
@@ -79,7 +80,44 @@ class PairAnalysisView(BaseView):
             )
 
     def audio_audio_comparison(self, embedder) -> None:
-        pass
+        audio1 = st.file_uploader("Audio file 1", type=["wav", "mp3"])
+        if audio1 is not None:
+            st.audio(audio1, format="audio/wav")
+
+        audio2 = st.file_uploader("Audio file 2", type=["wav", "mp3"])
+        if audio2 is not None:
+            st.audio(audio2, format="audio/wav")
+
+        button_disabled = not audio1 or not audio2
+        if st.button("Generate embeddings", disabled=button_disabled):
+            temp_path1 = Path("temp_audio1.wav")
+            with open(temp_path1, "wb") as f:
+                f.write(audio1.read())
+
+            temp_path2 = Path("temp_audio2.wav")
+            with open(temp_path2, "wb") as f:
+                f.write(audio2.read())
+
+            with st.spinner("Generating embeddings and computing similarity..."):
+                try:
+                    audio_emb1 = embedder.embed_audio(temp_path1)
+                    audio_emb2 = embedder.embed_audio(temp_path2)
+                    similarity = cosine_similarity(
+                        audio_emb1.vector, audio_emb2.vector
+                    )
+                    time.sleep(0.5)
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+                    return
+
+            st.metric("Cosine similarity", f"{similarity:.4f}")
+
+            st.subheader("2D PCA projection")
+            plotly_pca_projection(
+                audio_emb1.vector,
+                audio_emb2.vector,
+                method=ReduceDimensionsMethod.PCA,
+            )
 
     def text_text_comparison(self, embedder) -> None:
         pass
