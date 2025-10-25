@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
-# from src.domain.embeddings.mert_embedder import MERTEmbedder
+from src.domain.embeddings.mert_embedder import MERTEmbedder
 from src.domain.embeddings.openl3_embedder import OpenL3Embedder
 from src.models.dataclasses.model_env import ModelEnv
 from src.models.enums.embedders_models import EmbedderModel
@@ -26,8 +26,8 @@ class EmbeddersManager:
             # model = PANNS_Embedder(model_id="qiuqiangkong/panns_cnn14", work_dir=self.work_dir / "panns")
         elif model_name == EmbedderModel.OPENL3:
             model = OpenL3Embedder()
-        # elif model_name == EmbedderModel.MERT:
-        #     model = MERTEmbedder(model_id=self.env.mert_hf_name, work_dir=self.work_dir / self.env.mert_dir_name)
+        elif model_name == EmbedderModel.MERT:
+            model = MERTEmbedder(model_id=self.env.mert_hf_name, model_dir=self.models_dir / self.env.mert_dir_name)
         else:
             raise ValueError(f"Invalid model name: {model_name}")
 
