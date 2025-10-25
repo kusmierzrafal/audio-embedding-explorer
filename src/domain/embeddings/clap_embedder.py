@@ -23,7 +23,6 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
         self.processor = AutoProcessor.from_pretrained(model_dir)
         self.tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
-
     def embed_text(self, text: str) -> EmbeddingResult:
         if not self.model or not self.tokenizer:
             raise RuntimeError(ERROR_MSG["MODEL_NOT_LOADED"])

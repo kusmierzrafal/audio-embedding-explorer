@@ -10,7 +10,8 @@ class AudioEmbedder(ABC):
     @abstractmethod
     def embed_audio(self, audio_path: Path) -> EmbeddingResult:
         raise NotImplementedError
-    
+
+
 class TextEmbedder(ABC):
     @abstractmethod
     def embed_text(self, text: str) -> EmbeddingResult:

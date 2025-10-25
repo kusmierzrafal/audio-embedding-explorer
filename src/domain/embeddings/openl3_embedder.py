@@ -14,9 +14,7 @@ class OpenL3Embedder(AudioEmbedder):
     def __init__(self, input_repr="mel256", embedding_size=512):
         self._hop_size = 0.1  # seconds
         self.model = models.load_audio_embedding_model(
-            input_repr=input_repr,
-            content_type="music",
-            embedding_size=embedding_size
+            input_repr=input_repr, content_type="music", embedding_size=embedding_size
         )
         self.input_repr = input_repr
         self.embedding_size = embedding_size
@@ -27,10 +25,7 @@ class OpenL3Embedder(AudioEmbedder):
 
         waveform, sr = AudioHelper.load_audio(audio_path, target_sr=48000)
         embeddings, timestamps = get_audio_embedding(
-            waveform, sr,
-            model=self.model,
-            hop_size=self._hop_size,
-            center=True
+            waveform, sr, model=self.model, hop_size=self._hop_size, center=True
         )
         embeddings = torch.from_numpy(embeddings)
         global_embedding = embeddings.mean(dim=0, keepdim=True)
@@ -40,7 +35,8 @@ class OpenL3Embedder(AudioEmbedder):
         normalized_global_embedding = normalized_embeddings.mean(dim=0, keepdim=True)
 
         return EmbeddingResult(
-            vector=global_embedding, 
-            normalized_vector=normalized_global_embedding, 
-            source="audio", 
-            model_name="openl3")
+            vector=global_embedding,
+            normalized_vector=normalized_global_embedding,
+            source="audio",
+            model_name="openl3",
+        )

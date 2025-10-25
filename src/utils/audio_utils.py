@@ -9,12 +9,13 @@ import torch
 
 class AudioHelper:
     @staticmethod
-    def load_audio(source: Path | io.BytesIO,
+    def load_audio(
+        source: Path | io.BytesIO,
         target_sr: int = None,
         mono: bool = True,
         normalize: bool = True,
-        dtype: np.dtype = np.float32) -> Tuple[np.ndarray, int]:
-
+        dtype: np.dtype = np.float32,
+    ) -> Tuple[np.ndarray, int]:
         waveform, sr = librosa.load(source, sr=target_sr, mono=mono)
         if normalize:
             waveform = AudioHelper.normalize_audio(waveform)
@@ -28,9 +29,9 @@ class AudioHelper:
         return waveform
 
     @staticmethod
-    def segment_audio(waveform: np.ndarray,
-                      sr: int,
-                      segment_duration: float) -> List[np.ndarray]:
+    def segment_audio(
+        waveform: np.ndarray, sr: int, segment_duration: float
+    ) -> List[np.ndarray]:
         segment_length = int(sr * segment_duration)
         segments = []
         for start in range(0, waveform.shape[-1], segment_length):

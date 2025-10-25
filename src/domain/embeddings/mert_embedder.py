@@ -20,9 +20,8 @@ class MERTEmbedder(AudioEmbedder):
 
         self.model = AutoModel.from_pretrained(model_id, trust_remote_code=True)
         self.processor = Wav2Vec2FeatureExtractor.from_pretrained(
-            model_id, 
-            trust_remote_code=True)
-
+            model_id, trust_remote_code=True
+        )
 
     def embed_audio(self, audio_path: Path) -> EmbeddingResult:
         if not audio_path.exists():
@@ -37,18 +36,18 @@ class MERTEmbedder(AudioEmbedder):
         all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze(1)
         # reduce the representation in time => [13, 768]
         time_reduced_hidden_states = all_layer_hidden_states.mean(dim=1)
-        
+
         per_layer_embeddings = F.normalize(time_reduced_hidden_states, p=2, dim=-1)
         # [768]
         global_embedding = per_layer_embeddings.mean(dim=0)
         normalized_global_embedding = F.normalize(global_embedding, p=2, dim=-1)
 
-        global_vec = global_embedding.unsqueeze(0)          # [1, 768]
+        global_vec = global_embedding.unsqueeze(0)  # [1, 768]
         normalized_global_vec = normalized_global_embedding.unsqueeze(0)  # [1, 768]
 
         return EmbeddingResult(
             vector=global_vec,
             normalized_vector=normalized_global_vec,
             source="audio",
-            model_name=self.model_id
+            model_name=self.model_id,
         )

@@ -23,8 +23,7 @@ class PairAnalysisView(BaseView):
 
         embedders_manager: EmbeddersManager = st.session_state["embedders_manager"]
         selected_model = st.selectbox(
-            "Select embedder model",
-            [""] + embedders_manager.get_embedders_lookup()
+            "Select embedder model", [""] + embedders_manager.get_embedders_lookup()
         )
 
         if not selected_model:
@@ -42,16 +41,13 @@ class PairAnalysisView(BaseView):
         elif "text" in modalities:
             self.text_text_comparison(embedder)
 
-
-
-
     def audio_text_comparison(self, embedder) -> None:
         audio = st.file_uploader("Audio file", type=["wav", "mp3"])
         if audio is not None:
             st.audio(audio, format="audio/wav")
-        
+
         text = st.text_area("Text prompt", placeholder="e.g. calm piano")
-        
+
         button_disabled = not audio or not text.strip()
         if st.button("Generate embeddings", disabled=button_disabled):
             temp_path = Path("temp_audio.wav")
@@ -62,9 +58,7 @@ class PairAnalysisView(BaseView):
                 try:
                     text_emb = embedder.embed_text(text)
                     audio_emb = embedder.embed_audio(temp_path)
-                    similarity = cosine_similarity(
-                        audio_emb.vector, text_emb.vector
-                    )
+                    similarity = cosine_similarity(audio_emb.vector, text_emb.vector)
                     time.sleep(0.5)
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
@@ -102,9 +96,7 @@ class PairAnalysisView(BaseView):
                 try:
                     audio_emb1 = embedder.embed_audio(temp_path1)
                     audio_emb2 = embedder.embed_audio(temp_path2)
-                    similarity = cosine_similarity(
-                        audio_emb1.vector, audio_emb2.vector
-                    )
+                    similarity = cosine_similarity(audio_emb1.vector, audio_emb2.vector)
                     time.sleep(0.5)
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
