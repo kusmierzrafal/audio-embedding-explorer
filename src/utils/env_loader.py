@@ -2,7 +2,6 @@ import os
 
 from dotenv import load_dotenv
 
-from src.config.env_keys import CLAP_DIR_NAME, CLAP_HF_NAME, MERT_DIR_NAME, MERT_HF_NAME
 from src.models.dataclasses.model_env import ModelEnv
 
 
