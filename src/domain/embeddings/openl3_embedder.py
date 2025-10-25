@@ -1,11 +1,14 @@
 from pathlib import Path
+
 import torch
 import torch.nn.functional as F
-from openl3 import models, get_audio_embedding
-from src.models.dataclasses.embedding_result import EmbeddingResult
+from openl3 import get_audio_embedding, models
+
 from src.config.error_messages import ERROR_MSG
-from src.utils.audio_utils import AudioHelper
 from src.domain.embeddings.base_embedders import AudioEmbedder
+from src.models.dataclasses.embedding_result import EmbeddingResult
+from src.utils.audio_utils import AudioHelper
+
 
 class OpenL3Embedder(AudioEmbedder):
     def __init__(self, input_repr="mel256", embedding_size=512):
@@ -36,4 +39,8 @@ class OpenL3Embedder(AudioEmbedder):
         # Compute the global embedding by averaging frame-level embeddings
         normalized_global_embedding = normalized_embeddings.mean(dim=0, keepdim=True)
 
-        return EmbeddingResult(vector=global_embedding, normalized_vector=normalized_global_embedding, source="audio", model_name="openl3")
+        return EmbeddingResult(
+            vector=global_embedding, 
+            normalized_vector=normalized_global_embedding, 
+            source="audio", 
+            model_name="openl3")

@@ -1,9 +1,11 @@
 import io
 from pathlib import Path
+from typing import List, Tuple
+
+import librosa
 import numpy as np
 import torch
-import librosa
-from typing import Tuple, List
+
 
 class AudioHelper:
     @staticmethod

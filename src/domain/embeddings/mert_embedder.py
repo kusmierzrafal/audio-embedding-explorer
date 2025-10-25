@@ -1,12 +1,13 @@
 from pathlib import Path
-from huggingface_hub import snapshot_download
+
 import torch
 import torch.nn.functional as F
+from huggingface_hub import snapshot_download
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 
 from src.config.error_messages import ERROR_MSG
-from src.models.dataclasses.embedding_result import EmbeddingResult
 from src.domain.embeddings.base_embedders import AudioEmbedder
+from src.models.dataclasses.embedding_result import EmbeddingResult
 from src.utils.audio_utils import AudioHelper
 
 
@@ -18,7 +19,9 @@ class MERTEmbedder(AudioEmbedder):
             snapshot_download(repo_id=model_id, local_dir=model_dir)
 
         self.model = AutoModel.from_pretrained(model_id, trust_remote_code=True)
-        self.processor = Wav2Vec2FeatureExtractor.from_pretrained(model_id, trust_remote_code=True)
+        self.processor = Wav2Vec2FeatureExtractor.from_pretrained(
+            model_id, 
+            trust_remote_code=True)
 
 
     def embed_audio(self, audio_path: Path) -> EmbeddingResult:

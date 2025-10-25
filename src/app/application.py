@@ -3,9 +3,8 @@ from typing import Dict, Type
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-from src.domain.embeddings.embedders_manager import EmbeddersManager
 from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
-from src.domain.embeddings.clap_embedder import ClapEmbedder
+from src.domain.embeddings.embedders_manager import EmbeddersManager
 from src.models.enums.view_names import ViewName
 from src.ui.home_view import HomeView
 from src.ui.local_db_view import LocalDbView
