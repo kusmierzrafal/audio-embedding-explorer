@@ -9,6 +9,7 @@ All project changes will be documented in this file.
 - `EmbeddersManager` service to manage different embedding models
 
 #### Changed
+- Need to downgrade Python to 3.11 due to OpenL3 compatibility issues
 - Pair Analysis view to support OpenL3 and MERT embedders for audio embedding extraction
 - Embedders are lazy loaded when first requested
 - New .env variables for MERT (check in `src/config/env_keys.py`)
