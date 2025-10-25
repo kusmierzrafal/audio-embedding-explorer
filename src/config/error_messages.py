@@ -12,7 +12,4 @@ ERROR_MSG: dict[str, str] = dict(
     INVALID_AUDIO_FORMAT="Unsupported audio format. "
     "Please upload a valid .wav or .mp3 file.",
     INVALID_TEXT_TYPE="Text input must be a string.",
-    # EMBEDDING MODELS VALIDATION
-    INVALID_EMBEDDING_MODEL="Invalid embedding model selected.",
-    INVALID_AUDIO_EMBEDDING_MODE="Invalid audio embedding mode. Please use 'global' or 'frames'."
 )

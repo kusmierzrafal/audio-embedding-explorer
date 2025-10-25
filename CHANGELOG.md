@@ -6,8 +6,31 @@ All project changes will be documented in this file.
 Sections: Added / Changed / Fixed / Notes  
 
 ---
+### [0.5.0] - 2025-10-24
+#### Added
+- View `similarity_ranking_view.py` that creates ranking of audio and text similarity
 
-### [0.2.0] - 2025-10-23
+### Notes
+- Tab Text → Audio - user inputs text description, uploads multiple audio files 
+and receives a table with ranked similarity and audio previews.
+- Tab Audio → Text - user uploads one audio file, inputs multiple text descriptions 
+and gets a table with ranked similarity.
+- 
+---
+
+### [0.4.0] - 2025-10-24
+#### Added
+- TSNE & UMAP reduce dimensions methods in reduce_embeddings_dimensionality function
+
+#### Changed
+- PCA plotting function
+
+#### Removed
+- CLAP heatmap plot due to lack of analytical value and poor interpretability
+
+---
+
+### [0.3.0] - 2025-10-23
 #### Added
 - GitHub Actions workflow for Ruff linting and formatting checks on pull requests
 - Ruff configuration in `pyproject.toml` with Python 3.13 target and basic linting rules
@@ -20,6 +43,17 @@ Sections: Added / Changed / Fixed / Notes
 
 #### Notes
 Pull requests now require passing Ruff checks before merging. This ensures consistent code quality and formatting across the project.
+
+---
+
+### [0.2.0] - 2025-10-22
+#### Added
+- BaseEmbedder, ClapEmbedder
+- Computations for audio & text inputs
+- Basic metrics and visualisations
+
+#### Changed
+- Refactored Application class to preload models and store them in st.session_state
 
 ---
 

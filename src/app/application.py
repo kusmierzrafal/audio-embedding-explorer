@@ -3,9 +3,8 @@ from typing import Dict, Type
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-from src.models.enums.available_models import AvailableModel
-from src.domain.embeddings.embeddings_manager import ModelsManager
 from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
+from src.domain.embeddings.clap_embedder import ClapEmbedder
 from src.models.enums.view_names import ViewName
 from src.ui.home_view import HomeView
 from src.ui.local_db_view import LocalDbView
@@ -14,6 +13,8 @@ from src.ui.pair_analysis_view import PairAnalysisView
 from src.ui.pseudo_captioning_view import PseudoCaptioningView
 from src.ui.shared.base_view import BaseView
 from src.ui.similarity_ranking_view import SimilarityRankingView
+from src.utils.env_loader import load_model_env
+from src.utils.path_resolver import resolve_paths
 
 
 class Application:
@@ -32,34 +33,32 @@ class Application:
             ViewName.LOCAL_DB: LocalDbView,
         }
 
-<<<<<<< Updated upstream
-    def run(self) -> None:
-=======
     def load_models(self) -> None:
-        if "models_manager" in st.session_state:
+        if "models" in st.session_state:
             return
 
-        st.spinner("Loading env configuration...")
-        # env = load_model_env()
+        st.info("Loading env configuration...")
+        env = load_model_env()
         paths = resolve_paths()
 
-        models_manager = ModelsManager(paths.models_dir)
-        st.session_state["models_manager"] = models_manager
-        
-        # with st.spinner("Loading models..."):
-        #     for model_name in AvailableModel:
-        #         models_manager.get_model(model_name)
-        #         st.info(f"Loaded model: {model_name}")
+        with st.spinner("Loading models: CLAP & SLAP..."):
+            clap_embedder = ClapEmbedder(
+                model_id=env.clap_hf_name,
+                model_dir=paths.models_dir / env.clap_dir_name,
+            )
+            clap_embedder.load_model()
 
-        # st.success("Models loaded.")
+        st.session_state["models"] = {
+            "CLAP": clap_embedder,
+        }
 
+        st.success("Models loaded.")
 
     def run(self) -> None:
-        if "models_manager" not in st.session_state:
+        if "models" not in st.session_state:
             with st.spinner("Models initialization..."):
                 self.load_models()
             st.rerun()
->>>>>>> Stashed changes
         with st.sidebar:
             st.markdown(f"## {PAGE_TITLE}")
 

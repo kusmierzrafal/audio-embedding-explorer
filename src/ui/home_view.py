@@ -7,9 +7,9 @@ from src.ui.shared.base_view import BaseView
 class HomeView(BaseView):
     title = PAGE_TITLE
     description = (
-        "A tool for comparing and visualizing audio-text embeddings, "
+        "A tool for comparing and visualizing audio–text embeddings, "
         "that allows users to upload audio files, enter text, "
-        "and analyze how different embedding models interpret the meaning of "
+        "and analyze how embedding models CLAP and SLAP interpret the meaning of "
         "the provided data."
     )
 
@@ -18,7 +18,7 @@ class HomeView(BaseView):
         st.info(
             "Use the sidebar to navigate between views.\n\n"
             "Current modules:\n"
-            "- Audio-Text Pair Analysis\n"
+            "- Pair Analysis (CLAP / SLAP / both)\n"
             "- Model Comparison on demo data\n"
             "- Similarity Ranking (Text→Audio / Audio→Text)\n"
             "- Pseudo-captioning\n"
