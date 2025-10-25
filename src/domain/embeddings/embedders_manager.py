@@ -7,7 +7,6 @@ from src.domain.embeddings.openl3_embedder import OpenL3Embedder
 from src.models.dataclasses.model_env import ModelEnv
 from src.models.enums.embedders_models import EmbedderModel
 
-# from src.domain.embeddings.panns_embedder import PANNS_Embedder
 
 class EmbeddersManager:
     def __init__(self, models_path: Path, env: ModelEnv) -> None:
@@ -26,10 +25,6 @@ class EmbeddersManager:
             model = ClapEmbedder(
                 model_id=self.env.clap_hf_name,
                 model_dir=self.models_dir / self.env.clap_dir_name)
-        # elif model_name == EmbedderModel.PANNS:
-            # model = PANNS_Embedder(
-            #     model_id="qiuqiangkong/panns_cnn14", 
-            #     work_dir=self.work_dir / "panns")
         elif model_name == EmbedderModel.OPENL3:
             model = OpenL3Embedder()
         elif model_name == EmbedderModel.MERT:

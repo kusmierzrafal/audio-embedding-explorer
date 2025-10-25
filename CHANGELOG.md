@@ -2,8 +2,18 @@
 All project changes will be documented in this file.
 
 ### Format:  
-[version] - YYYY-MM-DD  
-Sections: Added / Changed / Fixed / Notes  
+[0.6.0] - 2025-10-25
+#### Added 
+- OpenL3 embedder for audio embedding extraction
+- MERT embedder for audio embedding extraction
+- `EmbeddersManager` service to manage different embedding models
+
+#### Changed
+- Pair Analysis view to support OpenL3 and MERT embedders for audio embedding extraction
+- Embedders are lazy loaded when first requested
+- New .env variables for MERT (check in `src/config/env_keys.py`)
+- Splitted `BaseEmbedder` into `AudioEmbedder` and `TextEmbedder` abstract classes
+- Move audio logic to `audio_utils.py` helper
 
 ---
 ### [0.5.0] - 2025-10-24
