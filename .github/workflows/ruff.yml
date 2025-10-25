@@ -17,6 +17,7 @@ jobs:
       # Lint (with inline GitHub annotations)
       - uses: astral-sh/ruff-action@v3
         with:
+          version: 0.14.1
           args: check --output-format=github .
 
       # Enforce formatting (no changes allowed in CI)
