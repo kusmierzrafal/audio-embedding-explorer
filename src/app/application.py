@@ -4,7 +4,7 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 
 from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
-from src.domain.embeddings.clap_embedder import ClapEmbedder
+from src.domain.embeddings.embedders_manager import EmbeddersManager
 from src.models.enums.view_names import ViewName
 from src.ui.home_view import HomeView
 from src.ui.local_db_view import LocalDbView
@@ -33,31 +33,20 @@ class Application:
             ViewName.LOCAL_DB: LocalDbView,
         }
 
-    def load_models(self) -> None:
-        if "models" in st.session_state:
+    def prepare_env(self) -> None:
+        if "embedders_manager" in st.session_state:
             return
 
-        st.info("Loading env configuration...")
         env = load_model_env()
         paths = resolve_paths()
 
-        with st.spinner("Loading models: CLAP & SLAP..."):
-            clap_embedder = ClapEmbedder(
-                model_id=env.clap_hf_name,
-                model_dir=paths.models_dir / env.clap_dir_name,
-            )
-            clap_embedder.load_model()
-
-        st.session_state["models"] = {
-            "CLAP": clap_embedder,
-        }
-
-        st.success("Models loaded.")
+        st.session_state["embedders_manager"] = EmbeddersManager(paths.models_dir, env)
+        st.success("Environment loaded successfully!")
 
     def run(self) -> None:
-        if "models" not in st.session_state:
-            with st.spinner("Models initialization..."):
-                self.load_models()
+        if "embedders_manager" not in st.session_state:
+            with st.spinner("Preparing environment..."):
+                self.prepare_env()
             st.rerun()
         with st.sidebar:
             st.markdown(f"## {PAGE_TITLE}")
