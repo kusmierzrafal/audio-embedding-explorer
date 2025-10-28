@@ -1,6 +1,15 @@
 # Changelog
 All project changes will be documented in this file.
 
+### [0.7.0] - 2025-10-28
+#### Added
+- NSynth Dataset (2017) sample for prototyping and student project work
+- Referenced by course instructor as good resource for experimentation
+- Source: https://magenta.withgoogle.com/datasets/nsynth#files
+- Location: assets/nsynth-test/
+
+---
+
 ### Format:  
 [0.6.0] - 2025-10-25
 #### Added 
