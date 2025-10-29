@@ -1,6 +1,12 @@
 # Changelog
 All project changes will be documented in this file.
 
+### Format:  
+[version] - YYYY-MM-DD  
+Sections: Added / Changed / Fixed / Notes  
+
+---
+
 ### [0.7.0] - 2025-10-28
 #### Added
 - NSynth Dataset (2017) sample for prototyping and student project work
@@ -9,9 +15,8 @@ All project changes will be documented in this file.
 - Location: assets/nsynth-test/
 
 ---
-
-### Format:  
-[0.6.0] - 2025-10-25
+ 
+### [0.6.0] - 2025-10-25
 #### Added 
 - OpenL3 embedder for audio embedding extraction
 - MERT embedder for audio embedding extraction
@@ -26,6 +31,7 @@ All project changes will be documented in this file.
 - Move audio logic to `audio_utils.py` helper
 
 ---
+
 ### [0.5.0] - 2025-10-24
 #### Added
 - View `similarity_ranking_view.py` that creates ranking of audio and text similarity
@@ -35,7 +41,7 @@ All project changes will be documented in this file.
 and receives a table with ranked similarity and audio previews.
 - Tab Audio → Text - user uploads one audio file, inputs multiple text descriptions 
 and gets a table with ranked similarity.
-- 
+
 ---
 
 ### [0.4.0] - 2025-10-24
