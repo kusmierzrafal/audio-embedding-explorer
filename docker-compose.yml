@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  backend:
+    image: ksalekk/wimu-env:latest
+    volumes:
+      - ./:/app
+    ports:
+      - "8051:8051"
+    command: >
+      streamlit run /app/main.py
+      --server.port=8051
+      --server.address=0.0.0.0
+      --server.fileWatcherType=watchdog
+    environment:
+      - PYTHONUNBUFFERED=1

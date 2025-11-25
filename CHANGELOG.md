@@ -6,6 +6,11 @@ All project changes will be documented in this file.
 Sections: Added / Changed / Fixed / Notes  
 
 ---
+### [0.8.0] - 2025-11-25
+#### Added 
+- Docker compose setup for easy local development and deployment
+
+---
 
 ### [0.7.0] - 2025-10-28
 #### Added
