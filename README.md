@@ -1,5 +1,6 @@
 # audio-embedding-explorer
 
+### Local Development Setup
 Navigate to the project directory:
 ```bash
 cd audio-embedding-explorer
@@ -17,6 +18,17 @@ Run the Streamlit app:
 ```bash
 streamlit run main.py
 ```
+
+### Docker Development Setup
+Ensure you have Docker and Docker Compose installed.
+Build and run the Docker containers:
+```bash
+docker-compose up --build
+```
+
+Access the Streamlit app at `http://localhost:8051`.
+
+
 
 ## Development
 

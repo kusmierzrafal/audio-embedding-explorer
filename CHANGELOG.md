@@ -1,8 +1,19 @@
 # Changelog
 All project changes will be documented in this file.
 
-### Format:  
-[0.6.0] - 2025-10-25
+### [0.7.0] - 2025-11-25
+#### Added 
+- Docker compose setup for easy local development and deployment
+
+#### Changed
+- Need to downgrade Python to 3.11 due to OpenL3 compatibility issues
+- Pair Analysis view to support OpenL3 and MERT embedders for audio embedding extraction
+- Embedders are lazy loaded when first requested
+- New .env variables for MERT (check in `src/config/env_keys.py`)
+- Splitted `BaseEmbedder` into `AudioEmbedder` and `TextEmbedder` abstract classes
+- Move audio logic to `audio_utils.py` helper
+
+### [0.6.0] - 2025-10-25
 #### Added 
 - OpenL3 embedder for audio embedding extraction
 - MERT embedder for audio embedding extraction
