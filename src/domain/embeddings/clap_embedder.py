@@ -18,8 +18,7 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
 
     def load(self):
         self._model, self._processor = load_weights_cached(
-            self._model_name,
-            self._device
+            self._model_name, self._device
         )
 
     def get_modalities(self) -> list[Modality]:
@@ -38,10 +37,7 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
             features = self._model.get_text_features(**text_input)
             normalized_features = torch.nn.functional.normalize(features, p=2, dim=-1)
 
-        return EmbeddingResult(
-            vector=features,
-            normalized_vector=normalized_features
-        )
+        return EmbeddingResult(vector=features, normalized_vector=normalized_features)
 
     def embed_audio(self, waveform: np.ndarray, sr: int) -> EmbeddingResult:
         if not self._model or not self._processor:
@@ -55,11 +51,8 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
             features = self._model.get_audio_features(**audio_input)
             normalized_features = torch.nn.functional.normalize(features, p=2, dim=-1)
 
-        return EmbeddingResult(
-            vector=features,
-            normalized_vector=normalized_features
-        )
-    
+        return EmbeddingResult(vector=features, normalized_vector=normalized_features)
+
     def get_sr(self) -> int:
         return 48000
 

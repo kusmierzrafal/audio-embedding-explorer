@@ -15,9 +15,8 @@ class SimilarityRankingView(BaseView):
     description = "Compare text descriptions against uploaded audio, or vice versa."
 
     def compute_text_to_audio(
-            self,
-            clap: AudioEmbedder | TextEmbedder, text, 
-            audio_files):
+        self, clap: AudioEmbedder | TextEmbedder, text, audio_files
+    ):
         with st.spinner("Computing similarities..."):
             text_emb = clap.embed_text(text).vector
             results = []

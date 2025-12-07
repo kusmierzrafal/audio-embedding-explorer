@@ -117,12 +117,12 @@ class ModelsManager:
 
     def get_loaded_models(self) -> list[StoredModel]:
         return [m for m in self.available_models.values() if m.is_loaded]
-    
+
     def get_loaded_models_ids_and_names(self) -> List[Tuple[str, str]]:
         results: List[Tuple[str, str]] = []
-    
+
         for model_id, m in self.available_models.items():
             if m.is_loaded:
                 results.append((model_id, m.name))
-                
+
         return results

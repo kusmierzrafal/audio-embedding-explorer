@@ -13,7 +13,7 @@ class BaseEmbedder(ABC):
     @abstractmethod
     def load(self):
         raise NotImplementedError
-    
+
     def unload(self):
         pass
 
@@ -25,7 +25,7 @@ class AudioEmbedder(BaseEmbedder):
     @abstractmethod
     def embed_audio(self, audio: Union[str, np.ndarray], sr: int) -> EmbeddingResult:
         raise NotImplementedError
-    
+
     @abstractmethod
     def get_sr(self) -> int:
         raise NotImplementedError

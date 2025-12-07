@@ -8,7 +8,7 @@ class StoredModel:
         embedder: BaseEmbedder | None,
         description: str,
         type: str,
-        is_imported: bool
+        is_imported: bool,
     ):
         self.name = name
         self.embedder = embedder

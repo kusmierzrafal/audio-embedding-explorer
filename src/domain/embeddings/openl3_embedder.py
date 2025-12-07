@@ -18,8 +18,7 @@ class OpenL3Embedder(AudioEmbedder):
 
     def load(self):
         self._model = load_weights_cached(
-            input_repr=self._input_repr,
-            embedding_size=self._embedding_size
+            input_repr=self._input_repr, embedding_size=self._embedding_size
         )
 
     def get_modalities(self) -> list[Modality]:
@@ -40,13 +39,14 @@ class OpenL3Embedder(AudioEmbedder):
             vector=global_embedding,
             normalized_vector=normalized_global_embedding,
         )
-    
+
     def get_sr(self) -> int:
         return 48000
+
 
 @st.cache_resource(show_spinner=False)
 def load_weights_cached(input_repr: str, embedding_size: int):
     model = models.load_audio_embedding_model(
-            input_repr=input_repr, content_type="music", embedding_size=embedding_size
-        )
+        input_repr=input_repr, content_type="music", embedding_size=embedding_size
+    )
     return model

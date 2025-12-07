@@ -42,7 +42,7 @@ class MERTEmbedder(AudioEmbedder):
             vector=global_vec,
             normalized_vector=normalized_global_vec,
         )
-    
+
     def get_sr(self) -> int:
         return 24000
 

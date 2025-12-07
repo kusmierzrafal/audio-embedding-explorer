@@ -44,7 +44,6 @@ class Application:
         if "db_manager" not in st.session_state:
             st.session_state.db_manager = DbManager()
 
-
     def run(self) -> None:
         self.prepare_env()
         with st.sidebar:
