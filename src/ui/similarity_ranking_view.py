@@ -1,5 +1,4 @@
 import time
-from pathlib import Path
 
 import streamlit as st
 
@@ -84,12 +83,14 @@ class SimilarityRankingView(BaseView):
             with col4:
                 st.audio(r["file"], format="audio/wav")
 
-    def compute_audio_to_text(self, clap, audio_file, texts):
+    def compute_audio_to_text(
+        self, 
+        clap: AudioEmbedder | TextEmbedder, 
+        audio_file, 
+        texts):
         with st.spinner("Computing similarities..."):
-            temp_path = Path("temp_audio.wav")
-            with open(temp_path, "wb") as f:
-                f.write(audio_file.read())
-            audio_emb = clap.embed_audio(temp_path).vector
+            y, sr = AudioHelper.load_audio(audio_file, clap.get_sr())
+            audio_emb = clap.embed_audio(y, sr).vector
             text_embs = [clap.embed_text(t).vector for t in texts]
 
             results = []
