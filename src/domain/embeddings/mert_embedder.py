@@ -1,36 +1,29 @@
-from pathlib import Path
-
+import numpy as np
+import streamlit as st
 import torch
 import torch.nn.functional as F
-from huggingface_hub import snapshot_download
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 
-from src.config.error_messages import ERROR_MSG
 from src.domain.embeddings.base_embedders import AudioEmbedder
 from src.models.dataclasses.embedding_result import EmbeddingResult
-from src.utils.audio_utils import AudioHelper
+from src.models.enums.modalities import Modality
 
 
 class MERTEmbedder(AudioEmbedder):
-    def __init__(self, model_id: str, model_dir: Path) -> None:
-        self.model_id = model_id
-        if not model_dir.exists():
-            model_dir.mkdir(parents=True, exist_ok=True)
-            snapshot_download(repo_id=model_id, local_dir=model_dir)
+    def __init__(self, model_name: str, device: str) -> None:
+        self.model_name = model_name
+        self.device = device
 
-        self.model = AutoModel.from_pretrained(model_id, trust_remote_code=True)
-        self.processor = Wav2Vec2FeatureExtractor.from_pretrained(
-            model_id, trust_remote_code=True
-        )
+    def load(self):
+        self._model, self._processor = load_weights_cached(self.model_name, self.device)
 
-    def embed_audio(self, audio_path: Path) -> EmbeddingResult:
-        if not audio_path.exists():
-            raise FileNotFoundError(ERROR_MSG["AUDIO_FILE_NOT_FOUND"])
+    def get_modalities(self) -> list[Modality]:
+        return [Modality.AUDIO]
 
-        waveform, sr = AudioHelper.load_audio(audio_path, target_sr=24000)
-        inputs = self.processor(waveform, sampling_rate=sr, return_tensors="pt")
+    def embed_audio(self, waveform: np.ndarray, sr: int) -> EmbeddingResult:
+        inputs = self._processor(waveform, sampling_rate=sr, return_tensors="pt")
         with torch.no_grad():
-            outputs = self.model(**inputs, output_hidden_states=True)
+            outputs = self._model(**inputs, output_hidden_states=True)
 
         # [layers, batch, time, feature_dim] == [13, 1, T, 768]
         all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze(1)
@@ -48,6 +41,16 @@ class MERTEmbedder(AudioEmbedder):
         return EmbeddingResult(
             vector=global_vec,
             normalized_vector=normalized_global_vec,
-            source="audio",
-            model_name=self.model_id,
         )
+
+    def get_sr(self) -> int:
+        return 24000
+
+
+@st.cache_resource(show_spinner=False)
+def load_weights_cached(model_name: str, device: str):
+    model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
+    processor = Wav2Vec2FeatureExtractor.from_pretrained(
+        model_name, trust_remote_code=True
+    )
+    return model, processor

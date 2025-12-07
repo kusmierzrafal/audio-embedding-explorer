@@ -5,25 +5,19 @@ Navigate to the project directory:
 ```bash
 cd audio-embedding-explorer
 ```
-Create and activate a virtual environment:
+Create and activate a virtual environment for python 3.11:
 ```bash
-python -m venv venv
-source venv/bin/activate   # On Windows use: venv\Scripts\activate
+py -3.11 -m venv .venv
+source .venv/bin/activate   # On Windows use: .venv\Scripts\activate
 ```
 Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install uv
+uv sync
 ```
 Run the Streamlit app:
 ```bash
-streamlit run main.py
-```
-
-### Docker Development Setup
-Ensure you have Docker and Docker Compose installed.
-Build and run the Docker containers:
-```bash
-docker-compose up --build
+uv run streamlit run main.py
 ```
 
 Access the Streamlit app at `http://localhost:8051`.
@@ -38,7 +32,7 @@ This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and code form
 
 **Install development dependencies:**
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 **Run Ruff checks locally:**

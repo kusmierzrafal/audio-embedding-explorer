@@ -6,6 +6,16 @@ All project changes will be documented in this file.
 Sections: Added / Changed / Fixed / Notes  
 
 ---
+### [0.9.0] - 2025-12-07
+#### Fixed
+- Cleanup models managing logic (handling import errors)
+- Add dashboard for models managing
+- Added audio edit functionality
+- Refactor pair analysis view (changed to embeddings playground)
+- Removed docker setup due to incompatibility with ARM devices for backend app image
+- Migrating from raw pip to uvicorn for backend app serving
+
+---
 ### [0.8.0] - 2025-11-25
 #### Added 
 - Docker compose setup for easy local development and deployment

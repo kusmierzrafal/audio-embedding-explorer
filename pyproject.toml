@@ -1,5 +1,31 @@
+[project]
+name = "Audio-Embedding-Explorer"
+version = "0.9.0"
+description = "Application for single- and multimodal audio embeddings"
+readme = "README.md"
+requires-python = "~=3.11.0"
+
+dependencies = [
+    "streamlit>=1.38",
+    "streamlit-option-menu>=0.3.6",
+    "numpy>=1.26",
+    "scikit-learn>=1.5",
+    "umap-learn>=0.5.6",
+    "librosa>=0.10",
+    "plotly>=5.23",
+    "pandas>=2.2",
+    "dotenv~=0.9.9",
+    "pydub>=0.25.1",
+    "static-ffmpeg>=2.13",
+    "torch>=2.9.1",
+    "transformers>=4.57.3",
+    "ruff>=0.14.7",
+    "openl3>=0.4.2",
+    "matplotlib>=3.10.7",
+]
+
 [tool.ruff]
-target-version = "py313"  # Using Python 3.13.3 as specified in your project
+target-version = "py311"  # Using Python 3.13.3 as specified in your project
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]  # pycodestyle, pyflakes, import sorting

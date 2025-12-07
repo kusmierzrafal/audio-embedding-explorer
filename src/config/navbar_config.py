@@ -6,7 +6,7 @@ PAGE_TITLE = "Audio Embedding Explorer"
 
 NAVBAR_ICONS: Dict[ViewName, str] = {
     ViewName.HOME: "house",
-    ViewName.PAIR_ANALYSIS: "soundwave",
+    ViewName.EMBEDDINGS_PLAYGROUND: "soundwave",
     ViewName.MODEL_COMPARISON: "cpu",
     ViewName.SIMILARITY_RANKING: "list-ol",
     ViewName.PSEUDO_CAPTIONING: "chat-text",
