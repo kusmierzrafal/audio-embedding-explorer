@@ -4,6 +4,7 @@ from pathlib import Path
 import streamlit as st
 
 from src.domain.metrics import cosine_similarity
+
 # from src.models.enums.embedders_models import EmbedderModel
 from src.ui.shared.base_view import BaseView
 

@@ -41,7 +41,9 @@ class AudioHelper:
         return segments
 
     @staticmethod
-    def process_audio(y: np.ndarray, sr: int, speed_rate=1.0, pitch_steps=0, noise_amount=0.0) -> np.ndarray:
+    def process_audio(
+        y: np.ndarray, sr: int, speed_rate=1.0, pitch_steps=0, noise_amount=0.0
+    ) -> np.ndarray:
         y_edited = y.copy()
         if speed_rate != 1.0:
             y_edited = librosa.effects.time_stretch(y_edited, rate=speed_rate)
@@ -57,6 +59,6 @@ class AudioHelper:
 
     @staticmethod
     def samples_to_bytes(y: np.ndarray, sr: int) -> io.BytesIO:
-        io_bytes = io.BytesIO()    
-        sf.write(io_bytes, y, sr, format='WAV')
+        io_bytes = io.BytesIO()
+        sf.write(io_bytes, y, sr, format="WAV")
         return io_bytes.getvalue()

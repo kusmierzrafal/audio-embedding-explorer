@@ -7,10 +7,10 @@ from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
 from src.domain.db_manager import DbManager
 from src.domain.embeddings.models_manager import ModelsManager
 from src.models.enums.view_names import ViewName
+from src.ui.embeddings_playground_view import EmbeddingsPlaygroundView
 from src.ui.home_view import HomeView
 from src.ui.local_db_view import LocalDbView
 from src.ui.model_comparison_view import ModelComparisonView
-from src.ui.embeddings_playground_view import EmbeddingsPlaygroundView
 from src.ui.pseudo_captioning_view import PseudoCaptioningView
 from src.ui.shared.base_view import BaseView
 from src.ui.similarity_ranking_view import SimilarityRankingView

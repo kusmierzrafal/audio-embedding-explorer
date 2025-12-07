@@ -33,11 +33,12 @@ class HomeView(BaseView):
             delta="Active" if loaded_count > 0 else "No models",
             delta_color="normal" if loaded_count > 0 else "off",
         )
-        c3.metric("Database Status", "Connected" if db_manager.is_connected 
-                  else "Not connected")
-        
+        c3.metric(
+            "Database Status",
+            "Connected" if db_manager.is_connected else "Not connected",
+        )
+
         c4.metric("Device", models_manager.device.upper())
-        
 
         st.divider()
         st.subheader("📦 Available Models")
@@ -62,7 +63,16 @@ class HomeView(BaseView):
                             models_manager.unload_model(id)
                             st.rerun()
                     else:
-                        if st.button("Load", key=f"load_{id}", type="primary"):
+                        if st.button(
+                            "Load",
+                            key=f"load_{id}",
+                            type="primary",
+                            disabled=not model_data.is_imported,
+                            help="Model not available. Please check the installation "
+                            "instructions."
+                            if not model_data.is_imported
+                            else None,
+                        ):
                             with st.spinner(f"Loading {model_data.name}..."):
                                 models_manager.load_model(id)
                             st.rerun()

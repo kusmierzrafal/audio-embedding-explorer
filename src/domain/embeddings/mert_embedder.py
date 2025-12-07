@@ -1,14 +1,12 @@
-from pathlib import Path
-
+import numpy as np
 import streamlit as st
 import torch
 import torch.nn.functional as F
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
 
-from src.config.error_messages import ERROR_MSG
 from src.domain.embeddings.base_embedders import AudioEmbedder
 from src.models.dataclasses.embedding_result import EmbeddingResult
-from src.utils.audio_utils import AudioHelper
+from src.models.enums.modalities import Modality
 
 
 class MERTEmbedder(AudioEmbedder):
@@ -17,19 +15,12 @@ class MERTEmbedder(AudioEmbedder):
         self.device = device
 
     def load(self):
-        self._model, self._processor = load_weights_cached(
-            self.model_name,
-            self.device
-        )
+        self._model, self._processor = load_weights_cached(self.model_name, self.device)
 
-    def get_modalities(self) -> list[str]:
-        return ["audio"]
+    def get_modalities(self) -> list[Modality]:
+        return [Modality.AUDIO]
 
-    def embed_audio(self, audio_path: Path) -> EmbeddingResult:
-        if not audio_path.exists():
-            raise FileNotFoundError(ERROR_MSG["AUDIO_FILE_NOT_FOUND"])
-
-        waveform, sr = AudioHelper.load_audio(audio_path, target_sr=24000)
+    def embed_audio(self, waveform: np.ndarray, sr: int) -> EmbeddingResult:
         inputs = self._processor(waveform, sampling_rate=sr, return_tensors="pt")
         with torch.no_grad():
             outputs = self._model(**inputs, output_hidden_states=True)
@@ -51,10 +42,15 @@ class MERTEmbedder(AudioEmbedder):
             vector=global_vec,
             normalized_vector=normalized_global_vec,
         )
+    
+    def get_sr(self) -> int:
+        return 24000
 
- 
+
 @st.cache_resource(show_spinner=False)
 def load_weights_cached(model_name: str, device: str):
     model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
-    processor = Wav2Vec2FeatureExtractor.from_pretrained(model_name, trust_remote_code=True)
+    processor = Wav2Vec2FeatureExtractor.from_pretrained(
+        model_name, trust_remote_code=True
+    )
     return model, processor

@@ -6,6 +6,7 @@ from typing import Union
 import numpy as np
 
 from src.models.dataclasses.embedding_result import EmbeddingResult
+from src.models.enums.modalities import Modality
 
 
 class BaseEmbedder(ABC):
@@ -16,13 +17,17 @@ class BaseEmbedder(ABC):
     def unload(self):
         pass
 
-    def get_modalities(self) -> list[str]:
+    def get_modalities(self) -> list[Modality]:
         raise NotImplementedError
 
 
 class AudioEmbedder(BaseEmbedder):
     @abstractmethod
     def embed_audio(self, audio: Union[str, np.ndarray], sr: int) -> EmbeddingResult:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_sr(self) -> int:
         raise NotImplementedError
 
 

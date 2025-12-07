@@ -1,15 +1,13 @@
-from pathlib import Path
-
+import numpy as np
 import openl3
 import streamlit as st
 import torch
 import torch.nn.functional as F
 from openl3 import models
 
-from src.config.error_messages import ERROR_MSG
 from src.domain.embeddings.base_embedders import AudioEmbedder
 from src.models.dataclasses.embedding_result import EmbeddingResult
-from src.utils.audio_utils import AudioHelper
+from src.models.enums.modalities import Modality
 
 
 class OpenL3Embedder(AudioEmbedder):
@@ -24,14 +22,10 @@ class OpenL3Embedder(AudioEmbedder):
             embedding_size=self._embedding_size
         )
 
-    def get_modalities(self) -> list[str]:
-        return ["audio"]
+    def get_modalities(self) -> list[Modality]:
+        return [Modality.AUDIO]
 
-    def embed_audio(self, audio_path: Path) -> EmbeddingResult:
-        if not audio_path.exists():
-            raise FileNotFoundError(ERROR_MSG["AUDIO_FILE_NOT_FOUND"])
-
-        waveform, sr = AudioHelper.load_audio(audio_path, target_sr=48000)
+    def embed_audio(self, waveform: np.ndarray, sr: int) -> EmbeddingResult:
         embeddings, timestamps = openl3.get_audio_embedding(
             waveform, sr, model=self._model, hop_size=self._hop_size, center=True
         )
@@ -46,6 +40,9 @@ class OpenL3Embedder(AudioEmbedder):
             vector=global_embedding,
             normalized_vector=normalized_global_embedding,
         )
+    
+    def get_sr(self) -> int:
+        return 48000
 
 @st.cache_resource(show_spinner=False)
 def load_weights_cached(input_repr: str, embedding_size: int):

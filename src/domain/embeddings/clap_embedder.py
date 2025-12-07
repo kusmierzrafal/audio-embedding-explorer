@@ -8,6 +8,7 @@ from transformers import ClapModel, ClapProcessor
 from src.config.error_messages import ERROR_MSG
 from src.domain.embeddings.base_embedders import AudioEmbedder, TextEmbedder
 from src.models.dataclasses.embedding_result import EmbeddingResult
+from src.models.enums.modalities import Modality
 
 
 class ClapEmbedder(AudioEmbedder, TextEmbedder):
@@ -21,8 +22,8 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
             self._device
         )
 
-    def get_modalities(self) -> list[str]:
-        return ["audio", "text"]
+    def get_modalities(self) -> list[Modality]:
+        return [Modality.AUDIO, Modality.TEXT]
 
     def embed_text(self, text: str) -> EmbeddingResult:
         if not self._model or not self._processor:
@@ -42,7 +43,6 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
             normalized_vector=normalized_features
         )
 
-
     def embed_audio(self, waveform: np.ndarray, sr: int) -> EmbeddingResult:
         if not self._model or not self._processor:
             raise RuntimeError(ERROR_MSG["MODEL_NOT_LOADED"])
@@ -59,6 +59,9 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
             vector=features,
             normalized_vector=normalized_features
         )
+    
+    def get_sr(self) -> int:
+        return 48000
 
 
 @st.cache_resource(show_spinner=False)
