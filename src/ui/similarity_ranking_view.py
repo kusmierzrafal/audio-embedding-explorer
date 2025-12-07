@@ -84,10 +84,8 @@ class SimilarityRankingView(BaseView):
                 st.audio(r["file"], format="audio/wav")
 
     def compute_audio_to_text(
-        self, 
-        clap: AudioEmbedder | TextEmbedder, 
-        audio_file, 
-        texts):
+        self, clap: AudioEmbedder | TextEmbedder, audio_file, texts
+    ):
         with st.spinner("Computing similarities..."):
             y, sr = AudioHelper.load_audio(audio_file, clap.get_sr())
             audio_emb = clap.embed_audio(y, sr).vector
