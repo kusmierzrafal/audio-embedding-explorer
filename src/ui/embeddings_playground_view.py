@@ -1,7 +1,6 @@
 import io
 
 import streamlit as st
-import torch
 
 from src.domain.embeddings.base_embedders import (
     AudioEmbedder,

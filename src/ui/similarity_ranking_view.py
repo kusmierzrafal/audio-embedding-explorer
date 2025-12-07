@@ -3,27 +3,28 @@ from pathlib import Path
 
 import streamlit as st
 
+from src.domain.embeddings.base_embedders import AudioEmbedder, TextEmbedder
+from src.domain.embeddings.models_manager import ModelsManager
 from src.domain.metrics import cosine_similarity
-
-# from src.models.enums.embedders_models import EmbedderModel
 from src.ui.shared.base_view import BaseView
+from src.utils.audio_utils import AudioHelper
 
 
 class SimilarityRankingView(BaseView):
     title = "Similarity Ranking"
     description = "Compare text descriptions against uploaded audio, or vice versa."
 
-    def compute_text_to_audio(self, clap, text, audio_files):
+    def compute_text_to_audio(
+            self,
+            clap: AudioEmbedder | TextEmbedder, text, 
+            audio_files):
         with st.spinner("Computing similarities..."):
             text_emb = clap.embed_text(text).vector
             results = []
 
             for file in audio_files:
-                temp_path = Path("temp_audio.wav")
-                with open(temp_path, "wb") as f:
-                    f.write(file.read())
-
-                audio_emb = clap.embed_audio(temp_path).vector
+                y, sr = AudioHelper.load_audio(file, clap.get_sr())
+                audio_emb = clap.embed_audio(y, sr).vector
                 sim = cosine_similarity(audio_emb, text_emb)
 
                 results.append(
@@ -148,7 +149,9 @@ class SimilarityRankingView(BaseView):
     def render(self) -> None:
         self.header()
 
-        clap = st.session_state["models_manager"]
+        models_manager: ModelsManager = st.session_state["models_manager"]
+        clap = models_manager.get_model("laion/clap-htsat-unfused").embedder
+        st.text("Using model: laion/clap-htsat-unfused")
 
         tab1, tab2 = st.tabs(["Text → Audio", "Audio → Text"])
 
