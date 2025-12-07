@@ -7,5 +7,3 @@ import torch
 class EmbeddingResult:
     vector: torch.Tensor
     normalized_vector: torch.Tensor
-    source: str
-    model_name: str

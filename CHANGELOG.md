@@ -6,6 +6,13 @@ All project changes will be documented in this file.
 Sections: Added / Changed / Fixed / Notes  
 
 ---
+### [0.9.0] - 2025-12-01
+#### Fixed
+- Reduced embeddings models to CLAP only for allowing to use on ARM devices
+- Cleanup models managing logic
+- Removed docker setup due to incompatibility with ARM devices for backend app image
+
+---
 ### [0.8.0] - 2025-11-25
 #### Added 
 - Docker compose setup for easy local development and deployment

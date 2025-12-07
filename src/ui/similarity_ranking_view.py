@@ -4,7 +4,7 @@ from pathlib import Path
 import streamlit as st
 
 from src.domain.metrics import cosine_similarity
-from src.models.enums.embedders_models import EmbedderModel
+# from src.models.enums.embedders_models import EmbedderModel
 from src.ui.shared.base_view import BaseView
 
 
@@ -147,7 +147,7 @@ class SimilarityRankingView(BaseView):
     def render(self) -> None:
         self.header()
 
-        clap = st.session_state["embedders_manager"].get_embedder(EmbedderModel.CLAP)
+        clap = st.session_state["models_manager"]
 
         tab1, tab2 = st.tabs(["Text → Audio", "Audio → Text"])
 

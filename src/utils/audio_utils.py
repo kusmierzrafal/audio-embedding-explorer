@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import librosa
 import numpy as np
-import torch
+import soundfile as sf
 
 
 class AudioHelper:
@@ -41,5 +41,22 @@ class AudioHelper:
         return segments
 
     @staticmethod
-    def to_tensor(waveform: np.ndarray) -> torch.Tensor:
-        return torch.from_numpy(waveform)
+    def process_audio(y: np.ndarray, sr: int, speed_rate=1.0, pitch_steps=0, noise_amount=0.0) -> np.ndarray:
+        y_edited = y.copy()
+        if speed_rate != 1.0:
+            y_edited = librosa.effects.time_stretch(y_edited, rate=speed_rate)
+
+        if pitch_steps != 0:
+            y_edited = librosa.effects.pitch_shift(y_edited, sr=sr, n_steps=pitch_steps)
+
+        if noise_amount > 0.0:
+            noise = noise_amount * np.random.randn(len(y_edited))
+            y_edited += noise
+
+        return y_edited
+
+    @staticmethod
+    def samples_to_bytes(y: np.ndarray, sr: int) -> io.BytesIO:
+        io_bytes = io.BytesIO()    
+        sf.write(io_bytes, y, sr, format='WAV')
+        return io_bytes.getvalue()
