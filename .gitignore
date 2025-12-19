@@ -1,3 +1,6 @@
+.idea/
+.venv/
+
 /models/
 *.wav
 custom-utils/

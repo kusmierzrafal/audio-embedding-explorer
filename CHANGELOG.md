@@ -6,6 +6,20 @@ All project changes will be documented in this file.
 Sections: Added / Changed / Fixed / Notes  
 
 ---
+
+### [0.9.1] - 2025-12-19
+#### Fixed
+- Prevent access to non-Home views when no models are loaded
+- Fix crashes caused by empty model selections
+- Improve device detection (auto CPU / CUDA fallback)
+- Safer optional imports for embedding backends
+
+#### Changed
+- Centralized model availability checks in application flow
+- Improved UX messaging when no models are available
+
+---
+
 ### [0.9.0] - 2025-12-07
 #### Fixed
 - Cleanup models managing logic (handling import errors)

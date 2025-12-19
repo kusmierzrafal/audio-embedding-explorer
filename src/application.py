@@ -46,6 +46,9 @@ class Application:
 
     def run(self) -> None:
         self.prepare_env()
+
+        models_manager: ModelsManager = st.session_state["models_manager"]
+
         with st.sidebar:
             st.markdown(f"## {PAGE_TITLE}")
 
@@ -59,6 +62,18 @@ class Application:
             )
 
         selected_view = next(v for v in self.views if v.value == selected_label)
+
+        if (
+                selected_view is not ViewName.HOME
+                and not models_manager.get_loaded_models()
+        ):
+            st.info(
+                "No embedding models are loaded.\n\n"
+                "Please go to Home page and load at least one model to continue."
+            )
+            return
+
         view_class = self.views[selected_view]
         view = view_class()
         view.render()
+
