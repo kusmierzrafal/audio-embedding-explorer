@@ -37,44 +37,56 @@ class HomeView(BaseView):
             "Database Status",
             "Connected" if db_manager.is_connected else "Not connected",
         )
-
         c4.metric("Device", models_manager.device.upper())
 
         st.divider()
-        st.subheader("📦 Available Models")
+        st.subheader("Available Models")
+
         for id, model_data in models_manager.available_models.items():
             is_loaded = models_manager.is_loaded(id)
-            with st.container(border=True):
-                col_icon, col_desc, col_action = st.columns([1, 4, 2])
 
-                with col_icon:
-                    if is_loaded:
-                        st.markdown("# 🟢")
-                    else:
-                        st.markdown("# ⚪")
+            if is_loaded:
+                status_label = "Loaded ✅"
+            elif not model_data.is_available:
+                status_label = "Unavailable ⛔"
+            else:
+                status_label = "Available ⬜"
+
+            with st.container(border=True):
+                col_desc, col_status, col_action = st.columns([5, 2, 2])
 
                 with col_desc:
                     st.markdown(f"**{model_data.name}**")
                     st.caption(f"{model_data.description} `{model_data.type}`")
 
+                with col_status:
+                    st.markdown(status_label)
+
                 with col_action:
+                    action_slot = st.empty()
+
                     if is_loaded:
-                        if st.button("Unload", key=f"unload_{id}", type="secondary"):
+                        if action_slot.button(
+                            "Unload",
+                            key=f"unload_{id}",
+                            type="secondary",
+                        ):
                             models_manager.unload_model(id)
                             st.rerun()
+
                     else:
-                        if st.button(
+                        if action_slot.button(
                             "Load",
                             key=f"load_{id}",
                             type="primary",
-                            disabled=not model_data.is_imported,
-                            help="Model not available. Please check the installation "
-                            "instructions."
-                            if not model_data.is_imported
-                            else None,
+                            disabled=not model_data.is_available,
+                            help=(
+                                "Model not available in this environment."
+                                if not model_data.is_available
+                                else None
+                            ),
                         ):
+                            action_slot.empty()  # usuwa przycisk
                             with st.spinner(f"Loading {model_data.name}..."):
                                 models_manager.load_model(id)
                             st.rerun()
-
-        st.markdown("---")
