@@ -8,11 +8,10 @@ class StoredModel:
         embedder: BaseEmbedder | None,
         description: str,
         type: str,
-        is_imported: bool,
     ):
         self.name = name
         self.embedder = embedder
         self.description = description
         self.type = type
         self.is_loaded = False
-        self.is_imported = is_imported
+        self.is_available = True

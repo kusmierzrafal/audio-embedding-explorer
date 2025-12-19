@@ -34,6 +34,12 @@ class Application:
         }
 
     def prepare_env(self) -> None:
+        if "app_ready" not in st.session_state:
+            st.session_state.app_ready = False
+
+        if st.session_state.app_ready:
+            return
+
         if "model_env" not in st.session_state:
             st.session_state.model_env = load_model_env()
 
@@ -44,8 +50,11 @@ class Application:
         if "db_manager" not in st.session_state:
             st.session_state.db_manager = DbManager()
 
+        st.session_state.app_ready = True
+
     def run(self) -> None:
-        self.prepare_env()
+        if "app_ready" not in st.session_state or not st.session_state.app_ready:
+            self.prepare_env()
 
         models_manager: ModelsManager = st.session_state["models_manager"]
 
@@ -64,8 +73,8 @@ class Application:
         selected_view = next(v for v in self.views if v.value == selected_label)
 
         if (
-                selected_view is not ViewName.HOME
-                and not models_manager.get_loaded_models()
+            selected_view is not ViewName.HOME
+            and not models_manager.has_any_loaded_model()
         ):
             st.info(
                 "No embedding models are loaded.\n\n"
@@ -76,4 +85,3 @@ class Application:
         view_class = self.views[selected_view]
         view = view_class()
         view.render()
-

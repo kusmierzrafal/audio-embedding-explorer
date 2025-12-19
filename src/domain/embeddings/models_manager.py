@@ -1,11 +1,13 @@
-from typing import Dict, List, Tuple, Type
-import torch
 import importlib
 import logging
+from typing import Dict, List, Tuple, Type
+
+import torch
 
 from src.domain.embeddings.stored_model import StoredModel
 
 logger = logging.getLogger(__name__)
+
 
 def optional_import(module_path: str, class_name: str) -> tuple[Type | None, bool]:
     try:
@@ -13,24 +15,9 @@ def optional_import(module_path: str, class_name: str) -> tuple[Type | None, boo
         return getattr(module, class_name), True
     except ImportError:
         return None, False
-    except Exception as e:
-        logger.exception(
-            "Error while importing %s.%s", module_path, class_name
-        )
+    except Exception:
+        logger.exception("Error while importing %s.%s", module_path, class_name)
         return None, False
-
-
-ClapEmbedder, clap_imported = optional_import(
-    "src.domain.embeddings.clap_embedder", "ClapEmbedder"
-)
-
-MERTEmbedder, mert_imported = optional_import(
-    "src.domain.embeddings.mert_embedder", "MERTEmbedder"
-)
-
-OpenL3Embedder, openl3_imported = optional_import(
-    "src.domain.embeddings.openl3_embedder", "OpenL3Embedder"
-)
 
 
 class ModelsManager:
@@ -40,59 +27,54 @@ class ModelsManager:
         else:
             self.device = device
 
-        self.available_models: Dict[str, StoredModel] = {"laion/clap-htsat-unfused": StoredModel(
-            name="laion/clap-htsat-unfused",
-            embedder=ClapEmbedder("laion/clap-htsat-unfused", device=self.device)
-            if clap_imported
-            else None,
-            description=(
-                "Best for music. Treats the audio input as a whole "
-                "(or trims to a specified length) and generates a vector. "
-                "Does not use a complex mechanism for combining fragments (fusion) "
-                "from different time windows."
+        self.available_models: Dict[str, StoredModel] = {
+            "laion/clap-htsat-unfused": StoredModel(
+                name="laion/clap-htsat-unfused",
+                embedder=None,
+                description=(
+                    "Best for music. Treats the audio input as a whole "
+                    "(or trims to a specified length) and generates a vector. "
+                    "Does not use a complex mechanism for combining fragments (fusion) "
+                    "from different time windows."
+                ),
+                type="audio-text",
             ),
-            type="audio-text",
-            is_imported=clap_imported,
-        ), "laion/clap-htsat-fused": StoredModel(
-            name="laion/clap-htsat-fused",
-            embedder=ClapEmbedder("laion/clap-htsat-fused", device=self.device)
-            if clap_imported
-            else None,
-            description=(
-                "Best for ambient sounds, effects. It is designed "
-                "to better handle variable-length or longer recordings. "
-                "It splits the audio into smaller fragments (windows/patches), "
-                "analyzes them independently, and then fuses the information from "
-                "these fragments into a single final vector."
+            "laion/clap-htsat-fused": StoredModel(
+                name="laion/clap-htsat-fused",
+                embedder=None,
+                description=(
+                    "Best for ambient sounds, effects. It is designed "
+                    "to better handle variable-length or longer recordings. "
+                    "It splits the audio into smaller fragments (windows/patches), "
+                    "analyzes them independently, and then fuses the information from "
+                    "these fragments into a single final vector."
+                ),
+                type="audio-text",
             ),
-            type="audio-text",
-            is_imported=clap_imported,
-        ), "m-a-p/MERT-v1-95M": StoredModel(
-            name="m-a-p/MERT-v1-95M",
-            embedder=MERTEmbedder(model_name="m-a-p/MERT-v1-95M", device=self.device)
-            if mert_imported
-            else None,
-            description=(
-                "MERT is a state-of-the-art model for general "
-                "audio embeddings, excelling in various tasks including "
-                "acoustic scene classification, music genre recognition, "
-                "and sound event detection."
+            "m-a-p/MERT-v1-95M": StoredModel(
+                name="m-a-p/MERT-v1-95M",
+                embedder=None,
+                description=(
+                    "MERT is a state-of-the-art model for general "
+                    "audio embeddings, excelling in various tasks including "
+                    "acoustic scene classification, music genre recognition, "
+                    "and sound event detection."
+                ),
+                type="audio",
             ),
-            type="audio",
-            is_imported=mert_imported,
-        ), "openl3-mel256-512": StoredModel(
-            name="openl3-mel256-512",
-            embedder=OpenL3Embedder() if openl3_imported else None,
-            description=(
-                "OpenL3 is a deep audio embedding model "
-                "that generates fixed-length vector representations of audio "
-                "clips. It is designed to capture high-level semantic features "
-                "from audio data, making it useful for tasks such as "
-                "audio classification, retrieval, and similarity analysis."
+            "openl3-mel256-512": StoredModel(
+                name="openl3-mel256-512",
+                embedder=None,
+                description=(
+                    "OpenL3 is a deep audio embedding model "
+                    "that generates fixed-length vector representations of audio "
+                    "clips. It is designed to capture high-level semantic features "
+                    "from audio data, making it useful for tasks such as "
+                    "audio classification, retrieval, and similarity analysis."
+                ),
+                type="audio",
             ),
-            type="audio",
-            is_imported=openl3_imported,
-        )}
+        }
 
     def _get(self, id: str) -> StoredModel | None:
         return self.available_models.get(id)
@@ -106,6 +88,33 @@ class ModelsManager:
         if not model or model.is_loaded:
             return
 
+        if id.startswith("laion/clap"):
+            embedderCls, ok = optional_import(
+                "src.domain.embeddings.clap_embedder", "ClapEmbedder"
+            )
+            if not ok:
+                model.is_available = False
+                return
+            model.embedder = embedderCls(model_name=id, device=self.device)
+
+        elif id == "m-a-p/MERT-v1-95M":
+            embedderCls, ok = optional_import(
+                "src.domain.embeddings.mert_embedder", "MERTEmbedder"
+            )
+            if not ok:
+                model.is_available = False
+                return
+            model.embedder = embedderCls(model_name=id, device=self.device)
+
+        elif id == "openl3-mel256-512":
+            embedderCls, ok = optional_import(
+                "src.domain.embeddings.openl3_embedder", "OpenL3Embedder"
+            )
+            if not ok:
+                model.is_available = False
+                return
+            model.embedder = embedderCls()
+
         model.embedder.load()
         model.is_loaded = True
 
@@ -115,9 +124,11 @@ class ModelsManager:
             return
 
         model.embedder.unload()
+        model.embedder = None
         model.is_loaded = False
 
         import gc
+
         gc.collect()
 
     def get_model(self, id: str) -> StoredModel | None:
