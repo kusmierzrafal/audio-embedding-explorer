@@ -7,6 +7,14 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.10.0] - 2025-12-20
+#### Changed
+- Replaced mocked Pseudo-captioning view with a real implementation based on CLAP models (music-level & sound-level)
+- Pseudo-captioning now uses uploaded audio and caption data loaded from JSON assets
+- Pseudo-captioning similarity computation now uses audio embedding vs precomputed caption embeddings
+
+---
+
 ### [0.9.1] - 2025-12-19
 #### Fixed
 - Prevent access to non-Home views when no models are loaded
