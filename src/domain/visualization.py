@@ -1,5 +1,5 @@
 import io
-from typing import Union
+from typing import List, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,9 +7,11 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 import torch
+from sklearn.decomposition import PCA
 
 from src.domain.metrics import reduce_embeddings_dimensionality
 from src.models.enums.reduce_dimensions_method import ReduceDimensionsMethod
+from src.utils.import_utils import optional_import
 
 
 def plot_pca_projection(
@@ -100,3 +102,61 @@ def plotly_pca_projection(
     fig.update_traces(marker=dict(line=dict(width=1, color="white")))
 
     st.plotly_chart(fig, use_container_width=True)
+
+
+def plot_2d(points: np.ndarray, labels: List[str], title: str):
+    fig, ax = plt.subplots()
+    ax.set_title(title)
+    ax.set_xlabel("Component 1")
+    ax.set_ylabel("Component 2")
+
+    if points.size == 0:
+        ax.text(0.5, 0.5, "No data", ha="center", va="center")
+        ax.set_axis_off()
+        return fig
+
+    ax.scatter(points[:, 0], points[:, 1])
+    for (x, y), lab in zip(points, labels):
+        ax.annotate(lab, (x, y), fontsize=8)
+
+    ax.grid(True, linestyle="--", linewidth=0.5)
+    return fig
+
+
+def compute_pca_fig(names: List[str], X: np.ndarray):
+    if X.ndim != 2 or X.shape[0] < 2:
+        return plot_2d(
+            np.zeros((len(names), 2), dtype=np.float32),
+            names,
+            "PCA (needs ≥ 2 samples)",
+        )
+    pca = PCA(n_components=2)
+    pts = pca.fit_transform(X)
+    return plot_2d(pts, names, "PCA")
+
+
+def compute_umap_fig(names: List[str], X: np.ndarray):
+    UMAP, ok = optional_import("umap", "UMAP")
+    if not ok or UMAP is None:
+        fig, ax = plt.subplots()
+        ax.set_title("UMAP (not available)")
+        ax.text(
+            0.5,
+            0.5,
+            "Install 'umap-learn' to enable UMAP.",
+            ha="center",
+            va="center",
+        )
+        ax.set_axis_off()
+        return fig
+
+    if X.ndim != 2 or X.shape[0] < 2:
+        return plot_2d(
+            np.zeros((len(names), 2), dtype=np.float32),
+            names,
+            "UMAP (needs ≥ 2 samples)",
+        )
+
+    reducer = UMAP(n_components=2, random_state=42)
+    pts = reducer.fit_transform(X)
+    return plot_2d(pts, names, "UMAP")
