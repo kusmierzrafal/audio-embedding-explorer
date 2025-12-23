@@ -7,6 +7,14 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.11.0] - 2025-12-23
+#### Added
+- Model Comparison view for side-by-side comparison of audio embedding models
+- Audio file upload and managed audio list with playback and deletion
+- Per-model PCA and UMAP visualizations for generated embeddings
+
+---
+
 ### [0.10.0] - 2025-12-20
 #### Changed
 - Replaced mocked Pseudo-captioning view with a real implementation based on CLAP models (music-level & sound-level)
