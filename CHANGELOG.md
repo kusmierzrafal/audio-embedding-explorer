@@ -12,6 +12,7 @@ Sections: Added / Changed / Fixed / Notes
 - Model Comparison view for side-by-side comparison of audio embedding models
 - Audio file upload and managed audio list with playback and deletion
 - Per-model PCA and UMAP visualizations for generated embeddings
+- NSynth-test dataset available in assets for audio embedding experiments
 
 ---
 
