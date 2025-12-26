@@ -1,7 +1,9 @@
+import io
 import time
 
 import streamlit as st
 
+from src.domain.db_manager import DbManager
 from src.domain.embeddings.base_embedders import AudioEmbedder, TextEmbedder
 from src.domain.embeddings.models_manager import ModelsManager
 from src.domain.metrics import cosine_similarity
@@ -148,6 +150,7 @@ class SimilarityRankingView(BaseView):
         self.header()
 
         models_manager: ModelsManager = st.session_state["models_manager"]
+        db_manager: DbManager = st.session_state["db_manager"]
         clap = models_manager.get_model("laion/clap-htsat-unfused").embedder
         st.text("Using model: laion/clap-htsat-unfused")
 
@@ -175,15 +178,55 @@ class SimilarityRankingView(BaseView):
                 st.info("Please provide both text descriptions and audio files.")
 
         with tab2:
-            uploaded_audio = st.file_uploader(
-                "Upload one audio file:",
-                type=["wav", "mp3"],
-                accept_multiple_files=False,
-                key="a2t_audio",
+            audio_source = st.radio(
+                "Audio source",
+                ["File Upload", "Database"],
+                horizontal=True,
+                key="a2t_audio_source",
+                disabled=not db_manager.is_connected,
             )
+            uploaded_audio = None
+            if audio_source == "File Upload":
+                uploaded_audio = st.file_uploader(
+                    "Upload one audio file:",
+                    type=["wav", "mp3"],
+                    accept_multiple_files=False,
+                    key="a2t_audio_upload",
+                )
+                if uploaded_audio:
+                    if st.button("Save to database", key="a2t_save_to_db"):
+                        data = uploaded_audio.getvalue()
+                        if db_manager.insert_audio_if_not_exists(
+                            uploaded_audio.name, data
+                        ):
+                            st.success(f"Saved '{uploaded_audio.name}' to database.")
+                        else:
+                            st.info(
+                                f"'{uploaded_audio.name}' already exists in database."
+                            )
+            else:
+                db_audio_files = db_manager.get_audio_files()
+                if not db_audio_files:
+                    st.warning("No audio files found in the database.")
+                else:
+                    selected_audio = st.selectbox(
+                        "Select audio from database",
+                        options=[(name, id) for id, name in db_audio_files],
+                        format_func=lambda x: x[0],
+                        key="a2t_audio_db_select",
+                    )
+                    if selected_audio:
+                        audio_name, audio_id = selected_audio
+                        audio_data, _ = db_manager.get_audio_data(audio_id)
+                        if audio_data:
+                            uploaded_audio = io.BytesIO(audio_data.read())
+                            uploaded_audio.name = audio_name
 
             if uploaded_audio is not None:
-                st.audio(uploaded_audio, format="audio/wav")
+                if audio_source == "File Upload":
+                    st.audio(uploaded_audio, format=uploaded_audio.type)
+                else:
+                    st.audio(uploaded_audio, format="audio/wav")
 
             text_input = st.text_area(
                 "Enter text descriptions (one per line):",
