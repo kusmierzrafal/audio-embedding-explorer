@@ -1,3 +1,4 @@
+import io
 import json
 import time
 from pathlib import Path
@@ -6,6 +7,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from src.domain.db_manager import DbManager
 from src.domain.embeddings.models_manager import ModelsManager
 from src.ui.shared.base_view import BaseView
 from src.ui.shared.model_status_label import model_status_label
@@ -70,7 +72,22 @@ class PseudoCaptioningView(BaseView):
         try:
             audio_file.seek(0)
             y, sr = AudioHelper.load_audio(audio_file, clap.get_sr())
-            audio_emb = clap.embed_audio(y, sr).vector
+            # Use database caching for audio embedding
+            db_manager = st.session_state.get("db_manager")
+            if db_manager and hasattr(audio_file, "name"):
+                audio_file.seek(0)
+                audio_data = audio_file.read()
+                audio_file.seek(0)  # Reset for potential reuse
+                audio_emb = db_manager.get_or_compute_audio_embedding(
+                    clap,
+                    audio_data,
+                    audio_file.name,
+                    sr,
+                    "laion/clap-htsat-unfused",
+                )
+            else:
+                # Fallback to direct computation
+                audio_emb = clap.embed_audio(y, sr).vector
         except Exception as e:
             st.error(f"Failed to process audio: {e}")
             return pd.DataFrame(columns=["No.", "Caption", "Cosine similarity"])
@@ -118,6 +135,7 @@ class PseudoCaptioningView(BaseView):
     def render(self) -> None:
         self.header()
 
+        db_manager: DbManager = st.session_state["db_manager"]
         models_manager: ModelsManager = st.session_state["models_manager"]
 
         music_model_id = "laion/clap-htsat-unfused"
@@ -160,20 +178,60 @@ class PseudoCaptioningView(BaseView):
             unsafe_allow_html=True,
         )
 
-        uploaded_audio = st.file_uploader(
-            "Upload audio file",
-            type=["wav", "mp3"],
-            accept_multiple_files=False,
+        audio_source = st.radio(
+            "Audio source",
+            ["File Upload", "Database"],
+            horizontal=True,
+            key="pseudo_captioning_audio_source",
+            disabled=not db_manager.is_connected,
         )
+        uploaded_audio = None
+        if audio_source == "File Upload":
+            uploaded_audio = st.file_uploader(
+                "Upload audio file",
+                type=["wav", "mp3"],
+                accept_multiple_files=False,
+                key="pseudo_captioning_audio_upload",
+            )
+            if uploaded_audio:
+                if st.button("Save to database", key="pseudo_captioning_save_to_db"):
+                    data = uploaded_audio.getvalue()
+                    if db_manager.insert_audio_if_not_exists(uploaded_audio.name, data):
+                        st.success(f"Saved '{uploaded_audio.name}' to database.")
+                    else:
+                        st.info(f"'{uploaded_audio.name}' already exists in database.")
+        else:
+            db_audio_files = db_manager.get_audio_files()
+            if not db_audio_files:
+                st.warning("No audio files found in the database.")
+            else:
+                selected_audio = st.selectbox(
+                    "Select audio from database",
+                    options=[(name, id) for id, name in db_audio_files],
+                    format_func=lambda x: x[0],
+                    key="pseudo_captioning_audio_db_select",
+                )
+                if selected_audio:
+                    audio_name, audio_id = selected_audio
+                    audio_data, _ = db_manager.get_audio_data(audio_id)
+                    if audio_data:
+                        uploaded_audio = io.BytesIO(audio_data.read())
+                        uploaded_audio.name = audio_name
 
         if not uploaded_audio:
             st.info("Please upload an audio file to generate pseudo-captions.")
             return
 
-        allowed_types = ("audio/wav", "audio/x-wav", "audio/mpeg")
-        if uploaded_audio.type not in allowed_types:
-            st.error(f"Unsupported audio format: {uploaded_audio.type}")
-            return
+        if audio_source == "File Upload" and uploaded_audio:
+            allowed_types = ("audio/wav", "audio/x-wav", "audio/mpeg")
+            if uploaded_audio.type not in allowed_types:
+                st.error(f"Unsupported audio format: {uploaded_audio.type}")
+                return
+        elif audio_source == "Database" and uploaded_audio:
+            supported_extensions = (".wav", ".mp3")
+            if not uploaded_audio.name.lower().endswith(supported_extensions):
+                st.error(f"Unsupported audio format: {uploaded_audio.name}")
+                return
 
         st.audio(uploaded_audio, format="audio/wav")
 

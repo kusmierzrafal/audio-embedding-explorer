@@ -2,6 +2,7 @@ import io
 
 import streamlit as st
 
+from src.domain.db_manager import DbManager
 from src.domain.embeddings.base_embedders import (
     AudioEmbedder,
     TextEmbedder,
@@ -64,11 +65,46 @@ class EmbeddingsPlaygroundView(BaseView):
     ) -> None:
         text = st.text_area("Text prompt", placeholder="e.g. calm piano")
 
-        audio_bytes: io.Bytes = st.file_uploader(
-            "Load audio", type=["wav", "mp3", "flac"]
+        db_manager: DbManager = st.session_state["db_manager"]
+        audio_source = st.radio(
+            "Audio source",
+            ["File Upload", "Database"],
+            horizontal=True,
+            disabled=not db_manager.is_connected,
         )
+        audio_bytes = None
+        audio_name = None
+
+        if audio_source == "File Upload":
+            uploaded_file: io.BytesIO = st.file_uploader(
+                "Load audio", type=["wav", "mp3", "flac"]
+            )
+            if uploaded_file:
+                audio_bytes = uploaded_file
+                audio_name = uploaded_file.name
+
+                if st.button("Save to database"):
+                    data = uploaded_file.getvalue()
+                    if db_manager.insert_audio_if_not_exists(audio_name, data):
+                        st.success(f"Saved '{audio_name}' to database.")
+                    else:
+                        st.info(f"'{audio_name}' already exists in database.")
+        else:
+            db_audio_files = db_manager.get_audio_files()
+            if not db_audio_files:
+                st.warning("No audio files found in the database.")
+            else:
+                selected_audio = st.selectbox(
+                    "Select audio from database",
+                    options=[(name, id) for id, name in db_audio_files],
+                    format_func=lambda x: x[0],
+                )
+                if selected_audio:
+                    audio_name, audio_id = selected_audio
+                    audio_bytes, audio_name = db_manager.get_audio_data(audio_id)
+
         if audio_bytes:
-            audio_view = AudioEditView(audio_bytes.name, audio_bytes=audio_bytes, sr=sr)
+            audio_view = AudioEditView(audio_name, audio_bytes=audio_bytes, sr=sr)
             audio_view.render()
 
         if st.button(
@@ -79,7 +115,28 @@ class EmbeddingsPlaygroundView(BaseView):
         ):
             with st.spinner("Generating embeddings and computing similarity..."):
                 text_emb = embedder.embed_text(text)
-                audio_emb = embedder.embed_audio(audio_view.latest_y, sr=sr)
+                # Use database caching for audio embedding
+                db_manager = st.session_state.get("db_manager")
+                if db_manager and audio_bytes:
+                    # Get model name from embedder
+                    model_name = getattr(embedder, "model_name", "unknown")
+                    audio_emb_vector = db_manager.get_or_compute_audio_embedding(
+                        embedder,
+                        audio_bytes,
+                        getattr(audio_view, "file_name", "unknown"),
+                        sr,
+                        model_name,
+                    )
+
+                    # Create EmbeddingResult-like object
+                    class EmbeddingWrapper:
+                        def __init__(self, vector):
+                            self.vector = vector
+
+                    audio_emb = EmbeddingWrapper(audio_emb_vector)
+                else:
+                    # Fallback to direct computation
+                    audio_emb = embedder.embed_audio(audio_view.latest_y, sr=sr)
                 similarity = cosine_similarity(audio_emb.vector, text_emb.vector)
 
                 st.metric("Cosine similarity", f"{similarity:.4f}")
@@ -93,11 +150,50 @@ class EmbeddingsPlaygroundView(BaseView):
         st.markdown("---")
 
     def single_audio(self, embedder: AudioEmbedder, sr: int) -> None:
-        audio_bytes: io.Bytes = st.file_uploader(
-            "Load audio", type=["wav", "mp3", "flac"]
+        db_manager: DbManager = st.session_state["db_manager"]
+        audio_source = st.radio(
+            "Audio source",
+            ["File Upload", "Database"],
+            horizontal=True,
+            key="single_audio_source",
+            disabled=not db_manager.is_connected,
         )
+        audio_bytes = None
+        audio_name = None
+
+        if audio_source == "File Upload":
+            uploaded_file: io.BytesIO = st.file_uploader(
+                "Load audio",
+                type=["wav", "mp3", "flac"],
+                key="single_audio_upload",
+            )
+            if uploaded_file:
+                audio_bytes = uploaded_file
+                audio_name = uploaded_file.name
+
+                if st.button("Save to database", key="single_save_to_db"):
+                    data = uploaded_file.getvalue()
+                    if db_manager.insert_audio_if_not_exists(audio_name, data):
+                        st.success(f"Saved '{audio_name}' to database.")
+                    else:
+                        st.info(f"'{audio_name}' already exists in database.")
+        else:
+            db_audio_files = db_manager.get_audio_files()
+            if not db_audio_files:
+                st.warning("No audio files found in the database.")
+            else:
+                selected_audio = st.selectbox(
+                    "Select audio from database",
+                    options=[(name, id) for id, name in db_audio_files],
+                    format_func=lambda x: x[0],
+                    key="single_audio_db_select",
+                )
+                if selected_audio:
+                    audio_name, audio_id = selected_audio
+                    audio_bytes, audio_name = db_manager.get_audio_data(audio_id)
+
         if audio_bytes:
-            audio_view = AudioEditView(audio_bytes.name, audio_bytes=audio_bytes, sr=sr)
+            audio_view = AudioEditView(audio_name, audio_bytes=audio_bytes, sr=sr)
             audio_view.render()
 
         if st.button(
@@ -105,7 +201,32 @@ class EmbeddingsPlaygroundView(BaseView):
             disabled=audio_bytes is None or audio_view.latest_y is None,
         ):
             with st.spinner("Generating embedding..."):
-                audio_emb = embedder.embed_audio(audio_view.latest_y, sr=sr)
+                # Use database caching for audio embedding
+                db_manager = st.session_state.get("db_manager")
+                if (
+                    db_manager
+                    and hasattr(audio_view, "latest_file_data")
+                    and audio_view.latest_file_data
+                ):
+                    # Get model name from embedder
+                    model_name = getattr(embedder, "model_name", "unknown")
+                    audio_emb_vector = db_manager.get_or_compute_audio_embedding(
+                        embedder,
+                        audio_view.latest_file_data,
+                        getattr(audio_view, "latest_file_name", "unknown"),
+                        sr,
+                        model_name,
+                    )
+
+                    # Create EmbeddingResult-like object
+                    class EmbeddingWrapper:
+                        def __init__(self, vector):
+                            self.vector = vector
+
+                    audio_emb = EmbeddingWrapper(audio_emb_vector)
+                else:
+                    # Fallback to direct computation
+                    audio_emb = embedder.embed_audio(audio_view.latest_y, sr=sr)
                 st.info("PCA for single embedding not implemented yet.")
                 st.text(audio_emb.vector)
         st.markdown("---")
