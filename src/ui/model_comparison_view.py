@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import streamlit as st
 
+from src.domain.db_manager import DbManager
 from src.domain.embeddings.models_manager import ModelsManager
 from src.domain.visualization import compute_pca_fig, compute_umap_fig
 from src.models.dataclasses.model_option import ModelOption
@@ -187,12 +188,58 @@ class ModelComparisonView(BaseView):
                 st.session_state["mc_show_model_picker"] = False
 
         if st.session_state["mc_show_audio_uploader"]:
-            uploaded = st.file_uploader(
-                "Upload audio files",
-                type=["wav", "mp3"],
-                accept_multiple_files=True,
-                key=f"mc_audio_uploader_{st.session_state['mc_audio_uploader_nonce']}",
+            db_manager: DbManager = st.session_state["db_manager"]
+            audio_source = st.radio(
+                "Audio source",
+                ["File Upload", "Database"],
+                horizontal=True,
+                key="mc_audio_source",
+                disabled=not db_manager.is_connected,
             )
+            uploaded = []
+            if audio_source == "File Upload":
+                uploaded_files = st.file_uploader(
+                    "Upload audio files",
+                    type=["wav", "mp3"],
+                    accept_multiple_files=True,
+                    key=f"mc_audio_uploader_{st.session_state['mc_audio_uploader_nonce']}",
+                )
+                if uploaded_files:
+                    uploaded = uploaded_files
+                    if st.button("Save all to database", key="mc_save_all"):
+                        saved_count = 0
+                        for file in uploaded_files:
+                            data = file.getvalue()
+                            if db_manager.insert_audio_if_not_exists(file.name, data):
+                                saved_count += 1
+                        if saved_count > 0:
+                            st.success(f"Saved {saved_count} file(s) to database.")
+                        else:
+                            st.info("All files already exist in database.")
+            else:
+                db_audio_files = db_manager.get_audio_files()
+                if not db_audio_files:
+                    st.warning("No audio files found in the database.")
+                else:
+                    selected_audios = st.multiselect(
+                        "Select audio files from database",
+                        options=[(name, id) for id, name in db_audio_files],
+                        format_func=lambda x: x[0],
+                        key="mc_audio_db_select",
+                    )
+                    if selected_audios and st.button(
+                        "Add selected files", key="mc_add_db_files"
+                    ):
+                        uploaded = []
+                        for audio_name, audio_id in selected_audios:
+                            audio_data, _ = db_manager.get_audio_data(audio_id)
+                            if audio_data:
+                                audio_file = io.BytesIO(audio_data.read())
+                                audio_file.name = audio_name
+                                audio_file.type = (
+                                    "audio/wav"  # Set type for compatibility
+                                )
+                                uploaded.append(audio_file)
             if uploaded:
                 new_files = _read_uploaded_files(uploaded)
                 filtered: List[Dict[str, Any]] = []
@@ -219,18 +266,40 @@ class ModelComparisonView(BaseView):
             )
         else:
             st.markdown("### Audio files")
-            for i, item in enumerate(files, start=1):
-                row_left, row_right = st.columns([10, 1])
+            # Create a scrollable container with fixed height
+            with st.container(height=400):
+                for i, item in enumerate(files, start=1):
+                    row_left, row_right = st.columns([10, 1])
 
-                with row_left:
-                    st.markdown(f"**{i}. {item['name']}**")
-                    st.audio(item["bytes"])
+                    with row_left:
+                        st.markdown(f"**{i}. {item['name']}**")
+                        st.audio(item["bytes"])
 
-                with row_right:
-                    if st.button("✕", key=f"mc_del_audio_{i}", help="Remove audio"):
-                        st.session_state["mc_audio_to_delete"] = item
-                        st.session_state["mc_show_delete_audio_modal"] = True
-                        st.rerun()
+                    with row_right:
+                        if st.button("✕", key=f"mc_del_audio_{i}", help="Remove audio"):
+                            st.session_state["mc_audio_to_delete"] = item
+                            st.session_state["mc_show_delete_audio_modal"] = True
+                            st.rerun()
+
+            # Add save to database button below the list
+            db_manager: DbManager = st.session_state["db_manager"]
+            if db_manager.is_connected and st.button(
+                "Save all to database", key="mc_save_all_files"
+            ):
+                saved_count = 0
+                skipped_count = 0
+                for item in files:
+                    if db_manager.insert_audio_if_not_exists(
+                        item["name"], item["bytes"]
+                    ):
+                        saved_count += 1
+                    else:
+                        skipped_count += 1
+
+                if saved_count > 0:
+                    st.success(f"Saved {saved_count} file(s) to database.")
+                if skipped_count > 0:
+                    st.info(f"{skipped_count} file(s) already existed in database.")
 
         if st.session_state.get("mc_show_delete_audio_modal"):
             _confirm_remove_audio()
