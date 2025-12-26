@@ -66,9 +66,12 @@ class EmbeddingsPlaygroundView(BaseView):
         text = st.text_area("Text prompt", placeholder="e.g. calm piano")
 
         db_manager: DbManager = st.session_state["db_manager"]
-        audio_source = st.radio("Audio source", ["File Upload", "Database"],
-                                horizontal=True,
-                                disabled=not db_manager.is_connected)
+        audio_source = st.radio(
+            "Audio source",
+            ["File Upload", "Database"],
+            horizontal=True,
+            disabled=not db_manager.is_connected,
+        )
         audio_bytes = None
         audio_name = None
 
@@ -127,9 +130,13 @@ class EmbeddingsPlaygroundView(BaseView):
 
     def single_audio(self, embedder: AudioEmbedder, sr: int) -> None:
         db_manager: DbManager = st.session_state["db_manager"]
-        audio_source = st.radio("Audio source", ["File Upload", "Database"],
-                                horizontal=True, key="single_audio_source",
-                                disabled=not db_manager.is_connected)
+        audio_source = st.radio(
+            "Audio source",
+            ["File Upload", "Database"],
+            horizontal=True,
+            key="single_audio_source",
+            disabled=not db_manager.is_connected,
+        )
         audio_bytes = None
         audio_name = None
 
@@ -156,7 +163,7 @@ class EmbeddingsPlaygroundView(BaseView):
                     "Select audio from database",
                     options=[(name, id) for id, name in db_audio_files],
                     format_func=lambda x: x[0],
-                    key="single_audio_db_select"
+                    key="single_audio_db_select",
                 )
                 if selected_audio:
                     audio_name, audio_id = selected_audio

@@ -56,9 +56,8 @@ class DbManager:
         with self.conn:
             cursor = self.conn.cursor()
             cursor.execute(
-                "SELECT data, original_name FROM audio WHERE id = ?",
-                (audio_id,)
-                )
+                "SELECT data, original_name FROM audio WHERE id = ?", (audio_id,)
+            )
             row = cursor.fetchone()
             if row:
                 return io.BytesIO(row[0]), row[1]
