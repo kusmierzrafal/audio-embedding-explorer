@@ -162,12 +162,52 @@ class SimilarityRankingView(BaseView):
                 placeholder="calm piano",
                 key="t2a_texts",
             )
-            uploaded_audios = st.file_uploader(
-                "Upload more than one audio files:",
-                type=["wav", "mp3"],
-                accept_multiple_files=True,
-                key="t2a_audios",
+            audio_source = st.radio(
+                "Audio source",
+                ["File Upload", "Database"],
+                horizontal=True,
+                key="t2a_audio_source",
+                disabled=not db_manager.is_connected,
             )
+            uploaded_audios = []
+            if audio_source == "File Upload":
+                uploaded_files = st.file_uploader(
+                    "Upload more than one audio files:",
+                    type=["wav", "mp3"],
+                    accept_multiple_files=True,
+                    key="t2a_audios_upload",
+                )
+                if uploaded_files:
+                    uploaded_audios = uploaded_files
+                    if st.button("Save all to database", key="t2a_save_all"):
+                        saved_count = 0
+                        for file in uploaded_files:
+                            data = file.getvalue()
+                            if db_manager.insert_audio_if_not_exists(file.name, data):
+                                saved_count += 1
+                        if saved_count > 0:
+                            st.success(f"Saved {saved_count} file(s) to database.")
+                        else:
+                            st.info("All files already exist in database.")
+            else:
+                db_audio_files = db_manager.get_audio_files()
+                if not db_audio_files:
+                    st.warning("No audio files found in the database.")
+                else:
+                    selected_audios = st.multiselect(
+                        "Select audio files from database",
+                        options=[(name, id) for id, name in db_audio_files],
+                        format_func=lambda x: x[0],
+                        key="t2a_audio_db_select",
+                    )
+                    if selected_audios:
+                        uploaded_audios = []
+                        for audio_name, audio_id in selected_audios:
+                            audio_data, _ = db_manager.get_audio_data(audio_id)
+                            if audio_data:
+                                audio_file = io.BytesIO(audio_data.read())
+                                audio_file.name = audio_name
+                                uploaded_audios.append(audio_file)
             if text_input and uploaded_audios:
                 if st.button("Compute similarities", key="btn_t2a"):
                     results = self.compute_text_to_audio(
