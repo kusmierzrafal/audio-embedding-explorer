@@ -2,6 +2,7 @@ import io
 
 import streamlit as st
 
+from src.domain.db_manager import DbManager
 from src.domain.embeddings.base_embedders import (
     AudioEmbedder,
     TextEmbedder,
@@ -64,11 +65,43 @@ class EmbeddingsPlaygroundView(BaseView):
     ) -> None:
         text = st.text_area("Text prompt", placeholder="e.g. calm piano")
 
-        audio_bytes: io.Bytes = st.file_uploader(
-            "Load audio", type=["wav", "mp3", "flac"]
-        )
+        db_manager: DbManager = st.session_state["db_manager"]
+        audio_source = st.radio("Audio source", ["File Upload", "Database"],
+                                horizontal=True,
+                                disabled=not db_manager.is_connected)
+        audio_bytes = None
+        audio_name = None
+
+        if audio_source == "File Upload":
+            uploaded_file: io.BytesIO = st.file_uploader(
+                "Load audio", type=["wav", "mp3", "flac"]
+            )
+            if uploaded_file:
+                audio_bytes = uploaded_file
+                audio_name = uploaded_file.name
+
+                if st.button("Save to database"):
+                    data = uploaded_file.getvalue()
+                    if db_manager.insert_audio_if_not_exists(audio_name, data):
+                        st.success(f"Saved '{audio_name}' to database.")
+                    else:
+                        st.info(f"'{audio_name}' already exists in database.")
+        else:
+            db_audio_files = db_manager.get_audio_files()
+            if not db_audio_files:
+                st.warning("No audio files found in the database.")
+            else:
+                selected_audio = st.selectbox(
+                    "Select audio from database",
+                    options=[(name, id) for id, name in db_audio_files],
+                    format_func=lambda x: x[0],
+                )
+                if selected_audio:
+                    audio_name, audio_id = selected_audio
+                    audio_bytes, audio_name = db_manager.get_audio_data(audio_id)
+
         if audio_bytes:
-            audio_view = AudioEditView(audio_bytes.name, audio_bytes=audio_bytes, sr=sr)
+            audio_view = AudioEditView(audio_name, audio_bytes=audio_bytes, sr=sr)
             audio_view.render()
 
         if st.button(
@@ -93,11 +126,44 @@ class EmbeddingsPlaygroundView(BaseView):
         st.markdown("---")
 
     def single_audio(self, embedder: AudioEmbedder, sr: int) -> None:
-        audio_bytes: io.Bytes = st.file_uploader(
-            "Load audio", type=["wav", "mp3", "flac"]
-        )
+        db_manager: DbManager = st.session_state["db_manager"]
+        audio_source = st.radio("Audio source", ["File Upload", "Database"],
+                                horizontal=True, key="single_audio_source",
+                                disabled=not db_manager.is_connected)
+        audio_bytes = None
+        audio_name = None
+
+        if audio_source == "File Upload":
+            uploaded_file: io.BytesIO = st.file_uploader(
+                "Load audio", type=["wav", "mp3", "flac"], key="single_audio_upload"
+            )
+            if uploaded_file:
+                audio_bytes = uploaded_file
+                audio_name = uploaded_file.name
+
+                if st.button("Save to database", key="single_save_to_db"):
+                    data = uploaded_file.getvalue()
+                    if db_manager.insert_audio_if_not_exists(audio_name, data):
+                        st.success(f"Saved '{audio_name}' to database.")
+                    else:
+                        st.info(f"'{audio_name}' already exists in database.")
+        else:
+            db_audio_files = db_manager.get_audio_files()
+            if not db_audio_files:
+                st.warning("No audio files found in the database.")
+            else:
+                selected_audio = st.selectbox(
+                    "Select audio from database",
+                    options=[(name, id) for id, name in db_audio_files],
+                    format_func=lambda x: x[0],
+                    key="single_audio_db_select"
+                )
+                if selected_audio:
+                    audio_name, audio_id = selected_audio
+                    audio_bytes, audio_name = db_manager.get_audio_data(audio_id)
+
         if audio_bytes:
-            audio_view = AudioEditView(audio_bytes.name, audio_bytes=audio_bytes, sr=sr)
+            audio_view = AudioEditView(audio_name, audio_bytes=audio_bytes, sr=sr)
             audio_view.render()
 
         if st.button(
