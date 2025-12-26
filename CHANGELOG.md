@@ -7,6 +7,25 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.12.0] - 2025-12-26
+#### Added
+- Database integration with SQLite backend for persistent data storage
+- Embedding caching system to store and reuse computed embeddings across all views
+- Database operations for audio files and embeddings with SHA256-based deduplication
+- Save to database functionality in all audio input views (Embeddings Playground, Similarity Ranking, Model Comparison, Pseudo Captioning)
+- Automatic embedding cache lookup and storage for significant performance improvements on repeat operations
+
+#### Changed
+- All views now use centralized embedding cache through `DbManager.get_or_compute_audio_embedding()`
+- Model Comparison view now includes scrollable audio file list with fixed height for better UX
+- Database-backed audio file selection available as alternative to file upload in multiple views
+
+#### Fixed
+- Improved handling of different file object types (BytesIO vs uploaded files) across views
+- Better error handling for database operations with automatic fallback to direct computation
+
+---
+
 ### [0.11.0] - 2025-12-23
 #### Added
 - Model Comparison view for side-by-side comparison of audio embedding models
