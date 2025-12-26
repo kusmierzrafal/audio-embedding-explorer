@@ -72,7 +72,22 @@ class PseudoCaptioningView(BaseView):
         try:
             audio_file.seek(0)
             y, sr = AudioHelper.load_audio(audio_file, clap.get_sr())
-            audio_emb = clap.embed_audio(y, sr).vector
+            # Use database caching for audio embedding
+            db_manager = st.session_state.get("db_manager")
+            if db_manager and hasattr(audio_file, "name"):
+                audio_file.seek(0)
+                audio_data = audio_file.read()
+                audio_file.seek(0)  # Reset for potential reuse
+                audio_emb = db_manager.get_or_compute_audio_embedding(
+                    clap,
+                    audio_data,
+                    audio_file.name,
+                    sr,
+                    "laion/clap-htsat-unfused",
+                )
+            else:
+                # Fallback to direct computation
+                audio_emb = clap.embed_audio(y, sr).vector
         except Exception as e:
             st.error(f"Failed to process audio: {e}")
             return pd.DataFrame(columns=["No.", "Caption", "Cosine similarity"])

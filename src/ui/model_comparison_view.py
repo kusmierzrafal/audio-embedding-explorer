@@ -126,10 +126,15 @@ def _load_audio_from_bytes(
 
 
 def _compute_embeddings_for_files(
-    embedder: Any, files: List[Dict[str, Any]]
+    embedder: Any, files: List[Dict[str, Any]], model_name: str
 ) -> Tuple[List[str], np.ndarray]:
     names: List[str] = []
     vecs: List[np.ndarray] = []
+
+    db_manager = st.session_state.get("db_manager")
+    model_id = None
+    if db_manager and db_manager.is_connected:
+        model_id = db_manager.get_or_insert_model(model_name)
 
     target_sr = _get_embedder_sr(embedder)
 
@@ -137,14 +142,35 @@ def _compute_embeddings_for_files(
         name = item["name"]
         data = item["bytes"]
 
-        y, sr = _load_audio_from_bytes(data, target_sr)
+        # Try to get embedding from database first
+        cached_vector = None
+        if db_manager and model_id:
+            audio_id = db_manager.get_audio_id_by_data(data)
+            if audio_id:
+                cached_vector = db_manager.get_embedding(audio_id, model_id)
 
-        try:
-            emb = embedder.embed_audio(y, sr)
-            v = getattr(emb, "vector", emb)
-            v = np.asarray(v, dtype=np.float32).reshape(-1)
-        except Exception as e:
-            raise RuntimeError(f"Embedding failed for '{name}': {e}") from e
+        if cached_vector is not None:
+            # Use cached embedding
+            v = cached_vector.reshape(-1)
+        else:
+            # Generate new embedding
+            y, sr = _load_audio_from_bytes(data, target_sr)
+            try:
+                emb = embedder.embed_audio(y, sr)
+                v = getattr(emb, "vector", emb)
+                v = np.asarray(v, dtype=np.float32).reshape(-1)
+
+                # Save to database if possible
+                if db_manager and model_id:
+                    audio_id = db_manager.get_audio_id_by_data(data)
+                    if not audio_id:
+                        # Insert audio first
+                        db_manager.insert_audio_if_not_exists(name, data)
+                        audio_id = db_manager.get_audio_id_by_data(data)
+                    if audio_id:
+                        db_manager.save_embedding(audio_id, model_id, v)
+            except Exception as e:
+                raise RuntimeError(f"Embedding failed for '{name}': {e}") from e
 
         names.append(name)
         vecs.append(v)
@@ -343,7 +369,12 @@ class ModelComparisonView(BaseView):
             stored = models_manager.get_model(model_id)
             run_state: Dict[str, Any] = st.session_state["mc_model_runs"].setdefault(
                 model_id,
-                {"status": "idle", "error": None, "pca_fig": None, "umap_fig": None},
+                {
+                    "status": "idle",
+                    "error": None,
+                    "pca_fig": None,
+                    "umap_fig": None,
+                },
             )
 
             with col:
@@ -352,7 +383,9 @@ class ModelComparisonView(BaseView):
                     st.markdown(f"### {ui_name}")
                 with header_right:
                     if st.button(
-                        "✕", key=f"mc_del_{model_id}", help="Remove from comparison"
+                        "✕",
+                        key=f"mc_del_{model_id}",
+                        help="Remove from comparison",
                     ):
                         st.session_state["mc_selected_models"] = [
                             mid
@@ -392,7 +425,7 @@ class ModelComparisonView(BaseView):
                     with st.spinner("Generating embeddings and projections..."):
                         try:
                             names, X = _compute_embeddings_for_files(
-                                stored.embedder, files
+                                stored.embedder, files, model_id
                             )
 
                             if X.size == 0:

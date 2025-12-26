@@ -21,10 +21,23 @@ class SimilarityRankingView(BaseView):
         with st.spinner("Computing similarities..."):
             text_emb = clap.embed_text(text).vector
             results = []
+            db_manager = st.session_state.get("db_manager")
 
             for file in audio_files:
                 y, sr = AudioHelper.load_audio(file, clap.get_sr())
-                audio_emb = clap.embed_audio(y, sr).vector
+                # Use database caching for audio embedding
+                if db_manager and hasattr(file, "getvalue"):
+                    audio_data = file.getvalue()
+                    audio_emb = db_manager.get_or_compute_audio_embedding(
+                        clap,
+                        audio_data,
+                        file.name,
+                        sr,
+                        "laion/clap-htsat-unfused",
+                    )
+                else:
+                    # Fallback to direct computation
+                    audio_emb = clap.embed_audio(y, sr).vector
                 sim = cosine_similarity(audio_emb, text_emb)
 
                 results.append(
@@ -90,7 +103,20 @@ class SimilarityRankingView(BaseView):
     ):
         with st.spinner("Computing similarities..."):
             y, sr = AudioHelper.load_audio(audio_file, clap.get_sr())
-            audio_emb = clap.embed_audio(y, sr).vector
+            # Use database caching for audio embedding
+            db_manager = st.session_state.get("db_manager")
+            if db_manager and hasattr(audio_file, "getvalue"):
+                audio_data = audio_file.getvalue()
+                audio_emb = db_manager.get_or_compute_audio_embedding(
+                    clap,
+                    audio_data,
+                    audio_file.name,
+                    sr,
+                    "laion/clap-htsat-unfused",
+                )
+            else:
+                # Fallback to direct computation
+                audio_emb = clap.embed_audio(y, sr).vector
             text_embs = [clap.embed_text(t).vector for t in texts]
 
             results = []
