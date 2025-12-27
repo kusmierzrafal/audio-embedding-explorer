@@ -7,6 +7,17 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.14.0] - 2025-12-27
+#### Added
+- Local Database View with semantic search functionality
+- Text → Audio search mode using CLAP models for semantic queries
+- Audio → Audio similarity search mode compatible with all embedding models
+- Cosine similarity ranking with configurable top-K results
+- Interactive audio preview and database integration for search results
+- Support for both text descriptions and audio-based similarity queries
+
+---
+
 ### [0.13.0] - 2025-12-27
 #### Added
 - Database Management view for interactive inspection, preview, and deletion of audio files and embeddings
