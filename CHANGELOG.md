@@ -7,6 +7,19 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.15.0] - 2025-12-27
+#### Added
+- Interactive PCA and UMAP visualizations in Model Comparison View using Plotly
+- Click-to-select functionality on scatter plot points
+- Audio preview panel for selected points with file details
+- Hover tooltips displaying audio names and coordinates on plots
+
+#### Changed
+- Replaced static matplotlib plots with interactive Plotly charts
+- Enhanced user experience with point selection and audio playback integration
+
+---
+
 ### [0.14.0] - 2025-12-27
 #### Added
 - Local Database View with semantic search functionality
