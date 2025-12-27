@@ -155,16 +155,10 @@ class LocalDbView(BaseView):
                     query_vec = self._get_audio_embedding_from_db(
                         selected_audio_id, selected_model, db_manager
                     )
-                    query_description = (
-                        "Audio: "
-                        f"{
-                            next(
-                                name
-                                for id_, name in audio_options
-                                if id_ == selected_audio_id
-                            )
-                        }"
+                    audio_name = next(
+                        name for id_, name in audio_options if id_ == selected_audio_id
                     )
+                    query_description = f"Audio: {audio_name}"
 
         # Show results if we have a query
         if query_vec is not None:
