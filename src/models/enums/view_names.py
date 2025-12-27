@@ -8,3 +8,4 @@ class ViewName(StrEnum):
     SIMILARITY_RANKING = "Similarity Ranking"
     PSEUDO_CAPTIONING = "Pseudo-captioning"
     LOCAL_DB = "Local Database"
+    DATABASE_MANAGEMENT = "Database Management"

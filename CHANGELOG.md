@@ -7,6 +7,12 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.13.0] - 2025-12-27
+#### Added
+- Database Management view for interactive inspection, preview, and deletion of audio files and embeddings
+
+---
+
 ### [0.12.0] - 2025-12-26
 #### Added
 - Database integration with SQLite backend for persistent data storage

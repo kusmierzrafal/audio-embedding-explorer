@@ -11,6 +11,7 @@ NAVBAR_ICONS: Dict[ViewName, str] = {
     ViewName.SIMILARITY_RANKING: "list-ol",
     ViewName.PSEUDO_CAPTIONING: "chat-text",
     ViewName.LOCAL_DB: "database",
+    ViewName.DATABASE_MANAGEMENT: "gear",
 }
 
 COLOR_BG = "#161B22"
