@@ -7,7 +7,12 @@ import streamlit as st
 
 from src.domain.db_manager import DbManager
 from src.domain.embeddings.models_manager import ModelsManager
-from src.domain.visualization import compute_pca_fig, compute_umap_fig
+from src.domain.visualization import (
+    compute_interactive_pca_fig,
+    compute_interactive_umap_fig,
+    compute_pca_fig,
+    compute_umap_fig,
+)
 from src.models.dataclasses.model_option import ModelOption
 from src.ui.shared.base_view import BaseView
 from src.ui.shared.model_status_label import model_status_label
@@ -74,6 +79,10 @@ def _init_state() -> None:
     st.session_state.setdefault("mc_show_delete_audio_modal", False)
     st.session_state.setdefault("mc_audio_uploader_nonce", 0)
     st.session_state.setdefault("mc_model_runs", {})
+    st.session_state.setdefault("mc_selected_point", None)
+    st.session_state.setdefault("mc_show_details", False)
+    st.session_state.setdefault("mc_selected_point", None)
+    st.session_state.setdefault("mc_show_details", False)
 
 
 def _read_uploaded_files(uploaded: List[Any]) -> List[Dict[str, Any]]:
@@ -434,11 +443,27 @@ class ModelComparisonView(BaseView):
                             if X.ndim != 2 or X.shape[0] != len(names):
                                 raise RuntimeError("Invalid embeddings shape.")
 
+                            # Generate audio IDs for interactive plots
+                            audio_ids = list(range(len(names)))
+
+                            # Create both static (matplotlib) and interactive
+                            # (plotly) figures
                             pca_fig = compute_pca_fig(names, X)
                             umap_fig = compute_umap_fig(names, X)
 
+                            interactive_pca_fig = compute_interactive_pca_fig(
+                                names, X, audio_ids
+                            )
+                            interactive_umap_fig = compute_interactive_umap_fig(
+                                names, X, audio_ids
+                            )
+
                             run_state["pca_fig"] = pca_fig
                             run_state["umap_fig"] = umap_fig
+                            run_state["interactive_pca_fig"] = interactive_pca_fig
+                            run_state["interactive_umap_fig"] = interactive_umap_fig
+                            run_state["names"] = names
+                            run_state["audio_files"] = files
                             run_state["status"] = "done"
                         except Exception as e:
                             logger.exception("Model comparison failed for %s", model_id)
@@ -448,10 +473,88 @@ class ModelComparisonView(BaseView):
                     st.rerun()
 
                 if run_state.get("status") == "done":
-                    st.markdown("#### PCA visualization")
-                    if run_state.get("pca_fig") is not None:
-                        st.pyplot(run_state["pca_fig"], clear_figure=False)
+                    # Interactive visualizations
+                    st.markdown("#### Interactive PCA visualization")
+                    if run_state.get("interactive_pca_fig") is not None:
+                        pca_selection = st.plotly_chart(
+                            run_state["interactive_pca_fig"],
+                            use_container_width=True,
+                            on_select="rerun",
+                            selection_mode="points",
+                            key=f"mc_pca_{model_id}",
+                        )
 
-                    st.markdown("#### UMAP visualization")
-                    if run_state.get("umap_fig") is not None:
-                        st.pyplot(run_state["umap_fig"], clear_figure=False)
+                        # Handle point selection
+                        self._handle_point_selection(
+                            pca_selection, run_state, model_id, "PCA"
+                        )
+
+                    st.markdown("#### Interactive UMAP visualization")
+                    if run_state.get("interactive_umap_fig") is not None:
+                        umap_selection = st.plotly_chart(
+                            run_state["interactive_umap_fig"],
+                            use_container_width=True,
+                            on_select="rerun",
+                            selection_mode="points",
+                            key=f"mc_umap_{model_id}",
+                        )
+
+                        # Handle point selection
+                        self._handle_point_selection(
+                            umap_selection, run_state, model_id, "UMAP"
+                        )
+
+    def _handle_point_selection(
+        self, selection_result, run_state, model_id: str, plot_type: str
+    ) -> None:
+        """Handle point selection from plotly charts"""
+        if selection_result and "selection" in selection_result:
+            selection = selection_result["selection"]
+            if selection and "points" in selection and selection["points"]:
+                # Get the first selected point
+                point_data = selection["points"][0]
+                if "point_number" in point_data:
+                    point_idx = point_data["point_number"]
+                    names = run_state.get("names", [])
+                    files = run_state.get("audio_files", [])
+
+                    if 0 <= point_idx < len(names) and 0 <= point_idx < len(files):
+                        selected_name = names[point_idx]
+                        selected_file = files[point_idx]
+
+                        st.session_state["mc_selected_point"] = {
+                            "name": selected_name,
+                            "file": selected_file,
+                            "model_id": model_id,
+                            "plot_type": plot_type,
+                            "point_idx": point_idx,
+                        }
+                        st.session_state["mc_show_details"] = True
+
+                        # Show details panel immediately
+                        self._show_point_details()
+
+    def _show_point_details(self) -> None:
+        """Show details panel for selected point"""
+        selected_point = st.session_state.get("mc_selected_point")
+        if not selected_point:
+            return
+
+        with st.expander(f"🎵 Selected: {selected_point['name']}", expanded=True):
+            col1, col2 = st.columns([2, 1])
+
+            with col1:
+                st.markdown(f"**File:** {selected_point['name']}")
+                st.markdown(f"**Model:** {selected_point['model_id']}")
+                st.markdown(f"**Plot:** {selected_point['plot_type']}")
+
+                # Audio player
+                file_data = selected_point["file"]
+                if "bytes" in file_data and file_data["bytes"]:
+                    st.audio(file_data["bytes"], format="audio/wav")
+
+            with col2:
+                if st.button("Clear Selection"):
+                    st.session_state["mc_selected_point"] = None
+                    st.session_state["mc_show_details"] = False
+                    st.rerun()
