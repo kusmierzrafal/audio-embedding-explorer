@@ -7,6 +7,7 @@ from src.config.navbar_config import NAVBAR_ICONS, NAVBAR_STYLES, PAGE_TITLE
 from src.domain.db_manager import DbManager
 from src.domain.embeddings.models_manager import ModelsManager
 from src.models.enums.view_names import ViewName
+from src.ui.database_management_view import DatabaseManagementView
 from src.ui.embeddings_playground_view import EmbeddingsPlaygroundView
 from src.ui.home_view import HomeView
 from src.ui.local_db_view import LocalDbView
@@ -31,6 +32,7 @@ class Application:
             ViewName.SIMILARITY_RANKING: SimilarityRankingView,
             ViewName.PSEUDO_CAPTIONING: PseudoCaptioningView,
             ViewName.LOCAL_DB: LocalDbView,
+            ViewName.DATABASE_MANAGEMENT: DatabaseManagementView,
         }
 
     def prepare_env(self) -> None:
@@ -74,6 +76,7 @@ class Application:
 
         if (
             selected_view is not ViewName.HOME
+            and selected_view is not ViewName.DATABASE_MANAGEMENT
             and not models_manager.has_any_loaded_model()
         ):
             st.info(
