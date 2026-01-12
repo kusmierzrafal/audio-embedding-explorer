@@ -151,11 +151,11 @@ def compute_umap_fig(names: List[str], X: np.ndarray):
         ax.set_axis_off()
         return fig
 
-    if X.ndim != 2 or X.shape[0] < 2:
+    if X.ndim != 2 or X.shape[0] < 5:
         return plot_2d(
             np.zeros((len(names), 2), dtype=np.float32),
             names,
-            "UMAP (needs ≥ 2 samples)",
+            "UMAP (needs ≥ 5 samples)",
         )
 
     reducer = UMAP(n_components=2, random_state=42)
@@ -242,15 +242,15 @@ def compute_interactive_umap_fig(
         )
         return fig
 
-    if X.ndim != 2 or X.shape[0] < 2:
+    if X.ndim != 2 or X.shape[0] < 5:
         fig = go.Figure()
         fig.update_layout(
-            title="UMAP (needs ≥ 2 samples)",
+            title="UMAP (needs ≥ 5 samples)",
             xaxis_title="UMAP 1",
             yaxis_title="UMAP 2",
         )
         fig.add_annotation(
-            text="Need at least 2 samples for UMAP",
+            text="Need at least 5 samples for UMAP",
             x=0.5,
             y=0.5,
             xref="paper",

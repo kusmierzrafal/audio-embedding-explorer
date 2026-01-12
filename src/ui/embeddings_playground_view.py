@@ -120,9 +120,10 @@ class EmbeddingsPlaygroundView(BaseView):
                 if db_manager and audio_bytes:
                     # Get model name from embedder
                     model_name = getattr(embedder, "model_name", "unknown")
+                    audio_data = audio_bytes.getvalue() if hasattr(audio_bytes, 'getvalue') else audio_bytes
                     audio_emb_vector = db_manager.get_or_compute_audio_embedding(
                         embedder,
-                        audio_bytes,
+                        audio_data,
                         getattr(audio_view, "file_name", "unknown"),
                         sr,
                         model_name,
