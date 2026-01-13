@@ -5,6 +5,18 @@ All project changes will be documented in this file.
 [version] - YYYY-MM-DD  
 Sections: Added / Changed / Fixed / Notes  
 
+### [0.16.0] - 2026-01-13
+#### Fixed
+- Playground uploading issue
+- UMAP minimum files count
+- Points selection in comparison view
+- Similarity ranking view working
+- Playground embeddings
+
+#### Added
+- Saving edited audio files to database from playground view
+
+
 ---
 
 ### [0.15.0] - 2025-12-27
