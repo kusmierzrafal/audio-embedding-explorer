@@ -1,14 +1,21 @@
 import io
 import time
 
+import numpy as np
 import streamlit as st
+from sklearn.metrics.pairwise import cosine_similarity
 
 from src.domain.db_manager import DbManager
 from src.domain.embeddings.base_embedders import AudioEmbedder, TextEmbedder
 from src.domain.embeddings.models_manager import ModelsManager
-from src.domain.metrics import cosine_similarity
 from src.ui.shared.base_view import BaseView
 from src.utils.audio_utils import AudioHelper
+
+# Models that support text input
+TEXT_CAPABLE_MODELS = {
+    "laion/clap-htsat-unfused",
+    "laion/clap-htsat-fused",
+}
 
 
 class SimilarityRankingView(BaseView):
@@ -16,7 +23,7 @@ class SimilarityRankingView(BaseView):
     description = "Compare text descriptions against uploaded audio, or vice versa."
 
     def compute_text_to_audio(
-        self, clap: AudioEmbedder | TextEmbedder, text, audio_files
+        self, clap: AudioEmbedder | TextEmbedder, text, audio_files, model_name: str
     ):
         with st.spinner("Computing similarities..."):
             text_emb = clap.embed_text(text).vector
@@ -33,12 +40,16 @@ class SimilarityRankingView(BaseView):
                         audio_data,
                         file.name,
                         sr,
-                        "laion/clap-htsat-unfused",
+                        model_name,
                     )
                 else:
                     # Fallback to direct computation
                     audio_emb = clap.embed_audio(y, sr).vector
-                sim = cosine_similarity(audio_emb, text_emb)
+
+                # Convert to numpy arrays and reshape for sklearn
+                audio_emb_array = np.asarray(audio_emb).reshape(1, -1)
+                text_emb_array = np.asarray(text_emb).reshape(1, -1)
+                sim = cosine_similarity(audio_emb_array, text_emb_array)[0][0]
 
                 results.append(
                     {
@@ -99,7 +110,7 @@ class SimilarityRankingView(BaseView):
                 st.audio(r["file"], format="audio/wav")
 
     def compute_audio_to_text(
-        self, clap: AudioEmbedder | TextEmbedder, audio_file, texts
+        self, clap: AudioEmbedder | TextEmbedder, audio_file, texts, model_name: str
     ):
         with st.spinner("Computing similarities..."):
             y, sr = AudioHelper.load_audio(audio_file, clap.get_sr())
@@ -112,7 +123,7 @@ class SimilarityRankingView(BaseView):
                     audio_data,
                     audio_file.name,
                     sr,
-                    "laion/clap-htsat-unfused",
+                    model_name,
                 )
             else:
                 # Fallback to direct computation
@@ -121,7 +132,10 @@ class SimilarityRankingView(BaseView):
 
             results = []
             for i, text_emb in enumerate(text_embs):
-                sim = cosine_similarity(audio_emb, text_emb)
+                # Convert to numpy arrays and reshape for sklearn
+                audio_emb_array = np.asarray(audio_emb).reshape(1, -1)
+                text_emb_array = np.asarray(text_emb).reshape(1, -1)
+                sim = cosine_similarity(audio_emb_array, text_emb_array)[0][0]
                 results.append(
                     {
                         "text": texts[i],
@@ -177,8 +191,40 @@ class SimilarityRankingView(BaseView):
 
         models_manager: ModelsManager = st.session_state["models_manager"]
         db_manager: DbManager = st.session_state["db_manager"]
-        clap = models_manager.get_model("laion/clap-htsat-unfused").embedder
-        st.text("Using model: laion/clap-htsat-unfused")
+
+        # Get loaded models
+        loaded_models = models_manager.get_loaded_models()
+        if not loaded_models:
+            st.warning(
+                "No models loaded. Please load at least one model from the Home page."
+            )
+            return
+
+        # Filter text-capable models
+        text_capable_model_names = [
+            model.name for model in loaded_models if model.name in TEXT_CAPABLE_MODELS
+        ]
+
+        if not text_capable_model_names:
+            st.error(
+                "Text-audio comparison requires CLAP models. "
+                "Please load a CLAP model from the Home page."
+            )
+            return
+
+        # Model selection
+        selected_model_name = st.selectbox(
+            "Select Model",
+            text_capable_model_names,
+            help="Choose an audio-text model for similarity computation",
+        )
+
+        selected_model = models_manager.get_model(selected_model_name)
+        if not selected_model or not selected_model.is_loaded:
+            st.error(f"Model {selected_model_name} is not properly loaded.")
+            return
+
+        embedder = selected_model.embedder
 
         tab1, tab2 = st.tabs(["Text → Audio", "Audio → Text"])
 
@@ -237,7 +283,7 @@ class SimilarityRankingView(BaseView):
             if text_input and uploaded_audios:
                 if st.button("Compute similarities", key="btn_t2a"):
                     results = self.compute_text_to_audio(
-                        clap, text_input, uploaded_audios
+                        embedder, text_input, uploaded_audios, selected_model_name
                     )
                     self.display_text_to_audio_results(results, text_input)
             else:
@@ -302,7 +348,9 @@ class SimilarityRankingView(BaseView):
             if uploaded_audio and text_input:
                 if st.button("Compute similarities", key="btn_a2t"):
                     texts = [t.strip() for t in text_input.split("\n") if t.strip()]
-                    results = self.compute_audio_to_text(clap, uploaded_audio, texts)
+                    results = self.compute_audio_to_text(
+                        embedder, uploaded_audio, texts, selected_model_name
+                    )
                     self.display_audio_to_text_results(results, uploaded_audio.name)
             else:
                 st.info(

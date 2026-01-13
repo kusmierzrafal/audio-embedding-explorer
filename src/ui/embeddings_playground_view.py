@@ -107,6 +107,37 @@ class EmbeddingsPlaygroundView(BaseView):
             audio_view = AudioEditView(audio_name, audio_bytes=audio_bytes, sr=sr)
             audio_view.render()
 
+            # Add button to save edited audio to database
+            cache = st.session_state.get(f"audio_edit_{audio_name}")
+            if cache and db_manager.is_connected:
+                # Check if audio has been edited
+                is_edited = (
+                    cache.speed_rate != 1.0
+                    or cache.pitch_steps != 0
+                    or cache.noise_amount != 0.0
+                )
+                if st.button(
+                    "Save edited audio",
+                    key="save_edited_audio_single",
+                    disabled=not is_edited,
+                ):
+                    from src.utils.audio_utils import AudioHelper
+
+                    # Convert edited audio to bytes
+                    edited_bytes = AudioHelper.samples_to_bytes(cache.latest_y, sr=sr)
+                    # Generate new name for edited audio
+                    edited_name = (
+                        f"{audio_name.rsplit('.', 1)[0]}_edited_"
+                        + f"{cache.speed_rate}_{cache.pitch_steps}_"
+                        + f"{cache.noise_amount}.wav"
+                    )
+
+                    if db_manager.insert_audio_if_not_exists(edited_name, edited_bytes):
+                        st.success(f"Saved '{edited_name}' to database.")
+                        is_edited = False
+                    else:
+                        st.info(f"'{edited_name}' already exists in database.")
+
         if st.button(
             "Generate embedding",
             disabled=audio_bytes is None
@@ -200,6 +231,37 @@ class EmbeddingsPlaygroundView(BaseView):
         if audio_bytes:
             audio_view = AudioEditView(audio_name, audio_bytes=audio_bytes, sr=sr)
             audio_view.render()
+
+            # Add button to save edited audio to database
+            cache = st.session_state.get(f"audio_edit_{audio_name}")
+            if cache and db_manager.is_connected:
+                # Check if audio has been edited
+                is_edited = (
+                    cache.speed_rate != 1.0
+                    or cache.pitch_steps != 0
+                    or cache.noise_amount != 0.0
+                )
+                if st.button(
+                    "Save edited audio",
+                    key="save_edited_audio_single",
+                    disabled=not is_edited,
+                ):
+                    from src.utils.audio_utils import AudioHelper
+
+                    # Convert edited audio to bytes
+                    edited_bytes = AudioHelper.samples_to_bytes(cache.latest_y, sr=sr)
+                    # Generate new name for edited audio
+                    edited_name = (
+                        f"{audio_name.rsplit('.', 1)[0]}_edited_"
+                        + f"{cache.speed_rate}_{cache.pitch_steps}_"
+                        + f"{cache.noise_amount}.wav"
+                    )
+
+                    if db_manager.insert_audio_if_not_exists(edited_name, edited_bytes):
+                        st.success(f"Saved '{edited_name}' to database.")
+                        is_edited = False
+                    else:
+                        st.info(f"'{edited_name}' already exists in database.")
 
         if st.button(
             "Generate embedding",
