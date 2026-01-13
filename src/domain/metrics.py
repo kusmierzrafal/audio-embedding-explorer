@@ -7,8 +7,19 @@ from sklearn.manifold import TSNE
 from src.models.enums.reduce_dimensions_method import ReduceDimensionsMethod
 
 
-def cosine_similarity(a: torch.Tensor, b: torch.Tensor) -> float:
-    return torch.nn.functional.cosine_similarity(a, b).item()
+def cosine_similarity(a, b) -> float:
+    # Konwersja na tensor (działa dla numpy, list i tensorów)
+    if not isinstance(a, torch.Tensor):
+        a = torch.as_tensor(a)
+    if not isinstance(b, torch.Tensor):
+        b = torch.as_tensor(b)
+
+    # Wymuszenie typu float (ważne, jeśli numpy array był np. float64 lub object)
+    a = a.float()
+    b = b.float()
+
+    # Obliczenie podobieństwa
+    return torch.nn.functional.cosine_similarity(a, b, dim=0).item()
 
 
 def reduce_embeddings_dimensionality(

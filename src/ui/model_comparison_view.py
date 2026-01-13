@@ -485,9 +485,12 @@ class ModelComparisonView(BaseView):
                         )
 
                         # Handle point selection
+                        pca_key = f"{model_id}_PCA"
                         self._handle_point_selection(
-                            pca_selection, run_state, model_id, "PCA"
+                            pca_selection, run_state, model_id, "PCA", pca_key
                         )
+                        if st.session_state.get(f"mc_show_details_{pca_key}", True):
+                            self._show_point_details(pca_key)
 
                     st.markdown("#### Interactive UMAP visualization")
                     if run_state.get("interactive_umap_fig") is not None:
@@ -500,12 +503,22 @@ class ModelComparisonView(BaseView):
                         )
 
                         # Handle point selection
+                        umap_key = f"{model_id}_UMAP"
                         self._handle_point_selection(
-                            umap_selection, run_state, model_id, "UMAP"
+                            umap_selection, run_state, model_id, "UMAP", umap_key
                         )
 
+                        if st.session_state.get(f"mc_show_details_{umap_key}"):
+                            print(st.session_state.get(f"mc_show_details_{umap_key}"))
+                            self._show_point_details(umap_key)
+
     def _handle_point_selection(
-        self, selection_result, run_state, model_id: str, plot_type: str
+        self,
+        selection_result,
+        run_state,
+        model_id: str,
+        plot_type: str,
+        unique_key: str,
     ) -> None:
         """Handle point selection from plotly charts"""
         if selection_result and "selection" in selection_result:
@@ -522,39 +535,30 @@ class ModelComparisonView(BaseView):
                         selected_name = names[point_idx]
                         selected_file = files[point_idx]
 
-                        st.session_state["mc_selected_point"] = {
+                        st.session_state[f"mc_selected_point_{unique_key}"] = {
                             "name": selected_name,
                             "file": selected_file,
                             "model_id": model_id,
                             "plot_type": plot_type,
                             "point_idx": point_idx,
                         }
-                        st.session_state["mc_show_details"] = True
+                        st.session_state[f"mc_show_details_{unique_key}"] = True
+            else:
+                st.session_state[f"mc_selected_point_{unique_key}"] = None
+                st.session_state[f"mc_show_details_{unique_key}"] = False
 
-                        # Show details panel immediately
-                        self._show_point_details()
-
-    def _show_point_details(self) -> None:
+    def _show_point_details(self, unique_key: str) -> None:
         """Show details panel for selected point"""
-        selected_point = st.session_state.get("mc_selected_point")
+        selected_point = st.session_state.get(f"mc_selected_point_{unique_key}")
         if not selected_point:
             return
 
         with st.expander(f"🎵 Selected: {selected_point['name']}", expanded=True):
-            col1, col2 = st.columns([2, 1])
+            st.markdown(f"**File:** {selected_point['name']}")
+            st.markdown(f"**Model:** {selected_point['model_id']}")
+            st.markdown(f"**Plot:** {selected_point['plot_type']}")
 
-            with col1:
-                st.markdown(f"**File:** {selected_point['name']}")
-                st.markdown(f"**Model:** {selected_point['model_id']}")
-                st.markdown(f"**Plot:** {selected_point['plot_type']}")
-
-                # Audio player
-                file_data = selected_point["file"]
-                if "bytes" in file_data and file_data["bytes"]:
-                    st.audio(file_data["bytes"], format="audio/wav")
-
-            with col2:
-                if st.button("Clear Selection"):
-                    st.session_state["mc_selected_point"] = None
-                    st.session_state["mc_show_details"] = False
-                    st.rerun()
+            # Audio player
+            file_data = selected_point["file"]
+            if "bytes" in file_data and file_data["bytes"]:
+                st.audio(file_data["bytes"], format="audio/wav")
