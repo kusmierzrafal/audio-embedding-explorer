@@ -1,6 +1,8 @@
 import io
 
+import numpy as np
 import streamlit as st
+from sklearn.metrics.pairwise import cosine_similarity
 
 from src.domain.db_manager import DbManager
 from src.domain.embeddings.base_embedders import (
@@ -8,12 +10,17 @@ from src.domain.embeddings.base_embedders import (
     TextEmbedder,
 )
 from src.domain.embeddings.models_manager import ModelsManager
-from src.domain.metrics import cosine_similarity
 from src.domain.visualization import plotly_pca_projection
 from src.models.enums.modalities import Modality
 from src.models.enums.reduce_dimensions_method import ReduceDimensionsMethod
 from src.ui.shared.audio_edit_view import AudioEditView
 from src.ui.shared.base_view import BaseView
+
+# Models that support text input
+TEXT_CAPABLE_MODELS = {
+    "laion/clap-htsat-unfused",
+    "laion/clap-htsat-fused",
+}
 
 
 class EmbeddingsPlaygroundView(BaseView):
@@ -28,17 +35,36 @@ class EmbeddingsPlaygroundView(BaseView):
         self.header()
 
         models_manager: ModelsManager = st.session_state["models_manager"]
-        model_id, _ = st.selectbox(
-            "Choose model",
-            options=models_manager.get_loaded_models_ids_and_names(),
-            format_func=lambda x: x[1],
-        )
 
-        if not models_manager.get_loaded_models_ids_and_names():
+        # Get all loaded models
+        all_loaded_models = models_manager.get_loaded_models_ids_and_names()
+
+        # Filter for text-capable models only
+        text_capable_loaded = [
+            (model_id, name)
+            for model_id, name in all_loaded_models
+            if model_id in TEXT_CAPABLE_MODELS
+        ]
+
+        if not all_loaded_models:
             st.info(
                 "There's no any loaded model. Please load a model in the home view."
             )
             return
+
+        if not text_capable_loaded:
+            st.warning(
+                "No audio-text capable models loaded. "
+                "This playground requires CLAP models. "
+                "Please load a CLAP model from the Home page."
+            )
+            return
+
+        model_id, _ = st.selectbox(
+            "Choose model",
+            options=text_capable_loaded,
+            format_func=lambda x: x[1],
+        )
 
         if model_id is None:
             st.info("Please load and select a model to continue.")
@@ -173,7 +199,11 @@ class EmbeddingsPlaygroundView(BaseView):
                 else:
                     # Fallback to direct computation
                     audio_emb = embedder.embed_audio(audio_view.latest_y, sr=sr)
-                similarity = cosine_similarity(audio_emb.vector, text_emb.vector)
+
+                # Convert to numpy arrays and reshape for sklearn
+                audio_emb_array = np.asarray(audio_emb.vector).reshape(1, -1)
+                text_emb_array = np.asarray(text_emb.vector).reshape(1, -1)
+                similarity = cosine_similarity(audio_emb_array, text_emb_array)[0][0]
 
                 st.metric("Cosine similarity", f"{similarity:.4f}")
 

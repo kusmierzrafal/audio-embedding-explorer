@@ -53,8 +53,17 @@ def plotly_pca_projection(
         st.warning("This visualization is available only for PCA projection.")
         return
 
-    a = audio_emb.detach().cpu().numpy().reshape(1, -1)
-    t = text_emb.detach().cpu().numpy().reshape(1, -1)
+    # Convert to numpy arrays (handle both torch tensors and numpy arrays)
+    if isinstance(audio_emb, torch.Tensor):
+        a = audio_emb.detach().cpu().numpy().reshape(1, -1)
+    else:
+        a = np.asarray(audio_emb).reshape(1, -1)
+
+    if isinstance(text_emb, torch.Tensor):
+        t = text_emb.detach().cpu().numpy().reshape(1, -1)
+    else:
+        t = np.asarray(text_emb).reshape(1, -1)
+
     combined = np.vstack([a, t])
     labels = ["Audio", "Text"]
 
