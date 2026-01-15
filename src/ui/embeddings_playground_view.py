@@ -1,6 +1,5 @@
 import io
 
-import numpy as np
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -15,6 +14,7 @@ from src.models.enums.modalities import Modality
 from src.models.enums.reduce_dimensions_method import ReduceDimensionsMethod
 from src.ui.shared.audio_edit_view import AudioEditView
 from src.ui.shared.base_view import BaseView
+from src.utils.audio_utils import safe_tensor_to_numpy
 
 # Models that support text input
 TEXT_CAPABLE_MODELS = {
@@ -201,8 +201,8 @@ class EmbeddingsPlaygroundView(BaseView):
                     audio_emb = embedder.embed_audio(audio_view.latest_y, sr=sr)
 
                 # Convert to numpy arrays and reshape for sklearn
-                audio_emb_array = np.asarray(audio_emb.vector).reshape(1, -1)
-                text_emb_array = np.asarray(text_emb.vector).reshape(1, -1)
+                audio_emb_array = safe_tensor_to_numpy(audio_emb.vector).reshape(1, -1)
+                text_emb_array = safe_tensor_to_numpy(text_emb.vector).reshape(1, -1)
                 similarity = cosine_similarity(audio_emb_array, text_emb_array)[0][0]
 
                 st.metric("Cosine similarity", f"{similarity:.4f}")

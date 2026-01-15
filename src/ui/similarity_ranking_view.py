@@ -1,7 +1,6 @@
 import io
 import time
 
-import numpy as np
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -9,7 +8,7 @@ from src.domain.db_manager import DbManager
 from src.domain.embeddings.base_embedders import AudioEmbedder, TextEmbedder
 from src.domain.embeddings.models_manager import ModelsManager
 from src.ui.shared.base_view import BaseView
-from src.utils.audio_utils import AudioHelper
+from src.utils.audio_utils import AudioHelper, safe_tensor_to_numpy
 
 # Models that support text input
 TEXT_CAPABLE_MODELS = {
@@ -47,8 +46,8 @@ class SimilarityRankingView(BaseView):
                     audio_emb = clap.embed_audio(y, sr).vector
 
                 # Convert to numpy arrays and reshape for sklearn
-                audio_emb_array = np.asarray(audio_emb).reshape(1, -1)
-                text_emb_array = np.asarray(text_emb).reshape(1, -1)
+                audio_emb_array = safe_tensor_to_numpy(audio_emb).reshape(1, -1)
+                text_emb_array = safe_tensor_to_numpy(text_emb).reshape(1, -1)
                 sim = cosine_similarity(audio_emb_array, text_emb_array)[0][0]
 
                 results.append(
@@ -133,8 +132,8 @@ class SimilarityRankingView(BaseView):
             results = []
             for i, text_emb in enumerate(text_embs):
                 # Convert to numpy arrays and reshape for sklearn
-                audio_emb_array = np.asarray(audio_emb).reshape(1, -1)
-                text_emb_array = np.asarray(text_emb).reshape(1, -1)
+                audio_emb_array = safe_tensor_to_numpy(audio_emb).reshape(1, -1)
+                text_emb_array = safe_tensor_to_numpy(text_emb).reshape(1, -1)
                 sim = cosine_similarity(audio_emb_array, text_emb_array)[0][0]
                 results.append(
                     {

@@ -22,6 +22,9 @@ class MERTEmbedder(AudioEmbedder):
 
     def embed_audio(self, waveform: np.ndarray, sr: int) -> EmbeddingResult:
         inputs = self._processor(waveform, sampling_rate=sr, return_tensors="pt")
+        # Move input tensors to model device
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
         with torch.no_grad():
             outputs = self._model(**inputs, output_hidden_states=True)
 
@@ -53,4 +56,15 @@ def load_weights_cached(model_name: str, device: str):
     processor = Wav2Vec2FeatureExtractor.from_pretrained(
         model_name, trust_remote_code=True
     )
+
+    # Handle meta tensor issue with newer PyTorch versions
+    try:
+        model = model.to(device)
+    except NotImplementedError as e:
+        if "meta tensor" in str(e):
+            # Use to_empty() for models loaded with meta tensors
+            model = model.to_empty(device=device)
+        else:
+            raise
+
     return model, processor

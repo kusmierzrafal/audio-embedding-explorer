@@ -22,7 +22,23 @@ uv run streamlit run main.py
 
 Access the Streamlit app at `http://localhost:8051`.
 
+## GPU/CPU Configuration
 
+The application uses CPU by default for audio embedding models. To enable GPU acceleration:
+
+1. **Create `.env` file** (if not already present):
+   ```bash
+   DEVICE=cpu
+   ```
+
+2. **Switch to GPU** by changing the device setting:
+   ```bash
+   DEVICE=cuda
+   ```
+
+**Requirements for GPU:**
+- CUDA-compatible GPU
+- PyTorch with CUDA support (automatically installed with `uv sync`)
 
 ## Development
 

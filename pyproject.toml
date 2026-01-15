@@ -17,12 +17,16 @@ dependencies = [
     "dotenv~=0.9.9",
     "pydub>=0.25.1",
     "static-ffmpeg>=2.13",
-    "torch>=2.9.1",
+    "torch>=2.0.0,<2.8.0; platform_machine != 'arm64'",
     "transformers>=4.57.3",
     "ruff>=0.14.7",
     "openl3>=0.4.2",
     "matplotlib>=3.10.7",
 ]
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu118"
 
 [tool.ruff]
 target-version = "py311"  # Using Python 3.13.3 as specified in your project

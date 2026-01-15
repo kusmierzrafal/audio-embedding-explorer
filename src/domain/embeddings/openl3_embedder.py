@@ -11,10 +11,11 @@ from src.models.enums.modalities import Modality
 
 
 class OpenL3Embedder(AudioEmbedder):
-    def __init__(self, input_repr="mel256", embedding_size=512):
+    def __init__(self, device: str = "cpu", input_repr="mel256", embedding_size=512):
         self._hop_size = 0.1  # seconds
         self._input_repr = input_repr
         self._embedding_size = embedding_size
+        self._device = device
 
     def load(self):
         self._model = load_weights_cached(
@@ -28,7 +29,7 @@ class OpenL3Embedder(AudioEmbedder):
         embeddings, timestamps = openl3.get_audio_embedding(
             waveform, sr, model=self._model, hop_size=self._hop_size, center=True
         )
-        embeddings = torch.from_numpy(embeddings)
+        embeddings = torch.from_numpy(embeddings).to(self._device)
         global_embedding = embeddings.mean(dim=0, keepdim=True)
 
         normalized_embeddings = F.normalize(embeddings, p=2, dim=-1)

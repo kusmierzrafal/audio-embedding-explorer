@@ -5,6 +5,22 @@ All project changes will be documented in this file.
 [version] - YYYY-MM-DD  
 Sections: Added / Changed / Fixed / Notes  
 
+### [0.17.0] - 2026-01-15
+#### Added
+- GPU/CPU device switching for audio embedding models
+- CUDA support with PyTorch GPU acceleration
+- Device configuration via .env file (DEVICE=cpu/cuda)
+- Safe tensor conversion handling for CPU/CUDA tensors
+- GPU configuration documentation in README
+
+#### Changed
+- Enhanced all embedding models (CLAP, MERT, OpenL3) with device-aware loading
+- Updated pyproject.toml with PyTorch CUDA index for GPU support
+- Improved error handling for meta tensor issues in newer PyTorch versions
+
+
+---
+
 ### [0.16.0] - 2026-01-13
 #### Fixed
 - Playground uploading issue

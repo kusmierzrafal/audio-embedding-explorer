@@ -32,6 +32,8 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
             raise ValueError(ERROR_MSG["EMPTY_TEXT_INPUT"])
 
         text_input = self._processor(text, return_tensors="pt")
+        # Move input tensors to model device
+        text_input = {k: v.to(self._device) for k, v in text_input.items()}
 
         with torch.no_grad():
             features = self._model.get_text_features(**text_input)
@@ -46,6 +48,8 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
         audio_input = self._processor(
             audio=[waveform], return_tensors="pt", sampling_rate=sr
         )
+        # Move input tensors to model device
+        audio_input = {k: v.to(self._device) for k, v in audio_input.items()}
 
         with torch.no_grad():
             features = self._model.get_audio_features(**audio_input)
@@ -60,5 +64,16 @@ class ClapEmbedder(AudioEmbedder, TextEmbedder):
 @st.cache_resource(show_spinner=False)
 def load_weights_cached(model_name: str, device: str):
     processor = ClapProcessor.from_pretrained(model_name)
-    model = ClapModel.from_pretrained(model_name).to(device)
+    model = ClapModel.from_pretrained(model_name)
+
+    # Handle meta tensor issue with newer PyTorch versions
+    try:
+        model = model.to(device)
+    except NotImplementedError as e:
+        if "meta tensor" in str(e):
+            # Use to_empty() for models loaded with meta tensors
+            model = model.to_empty(device=device)
+        else:
+            raise
+
     return model, processor
