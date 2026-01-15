@@ -113,7 +113,7 @@ class ModelsManager:
             if not ok:
                 model.is_available = False
                 return
-            model.embedder = embedderCls()
+            model.embedder = embedderCls(device=self.device)
 
         model.embedder.load()
         model.is_loaded = True

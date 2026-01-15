@@ -16,7 +16,7 @@ from src.domain.visualization import (
 from src.models.dataclasses.model_option import ModelOption
 from src.ui.shared.base_view import BaseView
 from src.ui.shared.model_status_label import model_status_label
-from src.utils.audio_utils import AudioHelper
+from src.utils.audio_utils import AudioHelper, safe_tensor_to_numpy
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +167,12 @@ def _compute_embeddings_for_files(
             try:
                 emb = embedder.embed_audio(y, sr)
                 v = getattr(emb, "vector", emb)
-                v = np.asarray(v, dtype=np.float32).reshape(-1)
+
+                # Convert tensor to numpy array, handling both CPU and CUDA tensors
+                if hasattr(v, "detach"):  # PyTorch tensor
+                    v = safe_tensor_to_numpy(v).reshape(-1)
+                else:  # Already numpy array
+                    v = np.asarray(v, dtype=np.float32).reshape(-1)
 
                 # Save to database if possible
                 if db_manager and model_id:

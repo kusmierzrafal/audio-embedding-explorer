@@ -1,10 +1,23 @@
 import io
 from pathlib import Path
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Tuple, Union
 
 import librosa
 import numpy as np
 import soundfile as sf
+
+if TYPE_CHECKING:
+    import torch
+
+
+def safe_tensor_to_numpy(
+    tensor_or_array: Union[np.ndarray, "torch.Tensor"], dtype: np.dtype = np.float32
+) -> np.ndarray:
+    """Safely convert PyTorch tensor or numpy array to numpy array, CUDA tensors."""
+    if hasattr(tensor_or_array, "detach"):  # PyTorch tensor
+        return tensor_or_array.detach().cpu().numpy().astype(dtype)
+    else:  # Already numpy array or other array-like
+        return np.asarray(tensor_or_array, dtype=dtype)
 
 
 class AudioHelper:

@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 
 from data.const import DB_PATH
-from src.utils.audio_utils import AudioHelper
+from src.utils.audio_utils import AudioHelper, safe_tensor_to_numpy
 
 
 def _sha256_bytes(b: bytes) -> str:
@@ -160,9 +160,9 @@ class DbManager:
 
         # Save to cache
         if audio_id:
-            self.save_embedding(
-                audio_id, model_id, np.asarray(vector, dtype=np.float32)
-            )
+            # Convert tensor to numpy array, handling both CPU and CUDA tensors
+            vector_np = safe_tensor_to_numpy(vector)
+            self.save_embedding(audio_id, model_id, vector_np)
 
         return vector
 
