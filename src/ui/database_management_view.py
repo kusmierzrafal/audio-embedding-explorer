@@ -321,11 +321,9 @@ class DatabaseManagementView(BaseView):
                             with db_manager.conn:
                                 cursor = db_manager.conn.cursor()
                                 cursor.execute(
-                                    (
-                                        "DELETE FROM embedding "
-                                        "WHERE audio_id = ? AND model_id = ?",
-                                        (audio_id, model_id),
-                                    )
+                                    "DELETE FROM embedding "
+                                    "WHERE audio_id = ? AND model_id = ?",
+                                    (audio_id, model_id),
                                 )
                                 if cursor.rowcount > 0:
                                     deleted_count += 1
