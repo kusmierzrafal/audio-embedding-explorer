@@ -58,6 +58,16 @@ class Application:
         if "app_ready" not in st.session_state or not st.session_state.app_ready:
             self.prepare_env()
 
+        # Custom CSS to control sidebar width
+        st.markdown("""
+        <style>
+        section[data-testid="stSidebar"] {
+            width: 21rem !important;
+            background-color: #161B22 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
         models_manager: ModelsManager = st.session_state["models_manager"]
 
         with st.sidebar:
