@@ -86,7 +86,7 @@ class HomeView(BaseView):
                                 else None
                             ),
                         ):
-                            action_slot.empty()  # usuwa przycisk
+                            action_slot.empty()
                             with st.spinner(f"Loading {model_data.name}..."):
                                 models_manager.load_model(id)
                             st.rerun()
