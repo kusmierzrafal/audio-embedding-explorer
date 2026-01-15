@@ -1,4 +1,3 @@
-import io
 from typing import List, Optional, Union
 
 import matplotlib.pyplot as plt
@@ -13,35 +12,6 @@ from sklearn.decomposition import PCA
 from src.domain.metrics import reduce_embeddings_dimensionality
 from src.models.enums.reduce_dimensions_method import ReduceDimensionsMethod
 from src.utils.import_utils import optional_import
-
-
-def plot_pca_projection(
-    audio_emb: torch.Tensor,
-    text_emb: torch.Tensor,
-    method: Union[ReduceDimensionsMethod, str],
-) -> None:
-    if method != ReduceDimensionsMethod.PCA:
-        st.warning("This visualization is available only for PCA projection.")
-        return
-
-    a = audio_emb.detach().cpu().numpy().reshape(1, -1)
-    t = text_emb.detach().cpu().numpy().reshape(1, -1)
-    combined = np.vstack([a, t])
-
-    points_2d = reduce_embeddings_dimensionality(combined, method)
-
-    fig, ax = plt.subplots(figsize=(5, 5))
-    ax.scatter(points_2d[0, 0], points_2d[0, 1], color="blue", label="Audio", s=80)
-    ax.scatter(points_2d[1, 0], points_2d[1, 1], color="red", label="Text", s=80)
-    ax.legend()
-    ax.set_title(f"{method} projection of embeddings (2D)")
-    ax.set_xlabel("Component 1")
-    ax.set_ylabel("Component 2")
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    st.image(buf, width=650)
 
 
 def plotly_pca_projection(
@@ -85,8 +55,8 @@ def plotly_pca_projection(
     fig.update_layout(
         template="plotly_dark",
         font=dict(size=14, family="Arial"),
-        xaxis_title="Component 1",
-        yaxis_title="Component 2",
+        xaxis_title="PCA 1",
+        yaxis_title="PCA 2",
         xaxis=dict(
             showgrid=True,
             zeroline=True,
@@ -181,8 +151,8 @@ def compute_interactive_pca_fig(
         fig = go.Figure()
         fig.update_layout(
             title="PCA (needs ≥ 2 samples)",
-            xaxis_title="Component 1",
-            yaxis_title="Component 2",
+            xaxis_title="PCA 1",
+            yaxis_title="PCA 2",
         )
         fig.add_annotation(
             text="Need at least 2 samples for PCA",
@@ -225,6 +195,19 @@ def compute_interactive_pca_fig(
     )
 
     fig.update_layout(width=700, height=500, hovermode="closest")
+    fig.update_xaxes(
+        showgrid=True,
+        zeroline=True,
+        gridwidth=0.5,
+        gridcolor="rgba(200,200,200,0.4)",
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        zeroline=True,
+        gridwidth=0.5,
+        gridcolor="rgba(200,200,200,0.4)",
+    )
 
     return fig
 
@@ -299,5 +282,18 @@ def compute_interactive_umap_fig(
     )
 
     fig.update_layout(width=700, height=500, hovermode="closest")
+    fig.update_xaxes(
+        showgrid=True,
+        zeroline=True,
+        gridwidth=0.5,
+        gridcolor="rgba(200,200,200,0.4)",
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        zeroline=True,
+        gridwidth=0.5,
+        gridcolor="rgba(200,200,200,0.4)",
+    )
 
     return fig

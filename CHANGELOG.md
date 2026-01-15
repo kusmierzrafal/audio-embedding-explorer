@@ -5,6 +5,15 @@ All project changes will be documented in this file.
 [version] - YYYY-MM-DD  
 Sections: Added / Changed / Fixed / Notes  
 
+---
+
+### [0.18.0] - 2026-01-15
+#### Added
+- Standardized axis labels for visualizations
+- Vertical and horizontal grid lines to interactive PCA and UMAP visualizations
+
+---
+
 ### [0.17.0] - 2026-01-15
 #### Added
 - GPU/CPU device switching for audio embedding models
