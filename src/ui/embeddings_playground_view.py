@@ -24,7 +24,7 @@ TEXT_CAPABLE_MODELS = {
 
 
 class EmbeddingsPlaygroundView(BaseView):
-    title = "Embedding Playground"
+    title = "Embeddings Playground"
     description = (
         "Analyze a single audio-text or audio-audio pair using selected models. "
         "Uses PCA for visualization. You can also load multiple embeddings "
