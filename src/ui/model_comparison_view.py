@@ -148,9 +148,6 @@ def _compute_embeddings_for_files(
     vecs: List[np.ndarray] = []
 
     db_manager = st.session_state.get("db_manager")
-    model_id = None
-    if db_manager and db_manager.is_connected:
-        model_id = db_manager.get_or_insert_model(model_name)
 
     target_sr = _get_embedder_sr(embedder)
 

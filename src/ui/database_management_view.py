@@ -282,7 +282,8 @@ class DatabaseManagementView(BaseView):
                     FROM embedding e
                     LEFT JOIN audio a ON e.audio_id = a.id
                     LEFT JOIN model m ON e.model_id = m.id
-                    ORDER BY COALESCE(a.original_name, '[DELETED AUDIO]'), COALESCE(m.name, '[DELETED MODEL]')
+                    ORDER BY COALESCE(a.original_name, '[DELETED AUDIO]'), 
+                             COALESCE(m.name, '[DELETED MODEL]')
                 """)
                 embeddings = cursor.fetchall()
 
