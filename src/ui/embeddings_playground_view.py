@@ -62,7 +62,6 @@ class EmbeddingsPlaygroundView(BaseView):
         elif has_audio:
             self.audio_audio_comparison(model.embedder, sr=sr)
 
-
     def audio_text_comparison(
         self, embedder: AudioEmbedder | TextEmbedder, sr: int
     ) -> None:
@@ -88,7 +87,6 @@ class EmbeddingsPlaygroundView(BaseView):
 
         st.markdown("---")
 
-
     def audio_audio_comparison(self, embedder: AudioEmbedder, sr: int) -> None:
         st.subheader("Audio-Audio Comparison")
         db_manager: DbManager = st.session_state["db_manager"]
@@ -98,7 +96,6 @@ class EmbeddingsPlaygroundView(BaseView):
             info1 = self._render_audio_selector("aa_1", db_manager)
         with col2:
             info2 = self._render_audio_selector("aa_2", db_manager)
-
 
         y1, y2 = None, None
         ed_col1, ed_col2 = st.columns(2)
@@ -121,7 +118,6 @@ class EmbeddingsPlaygroundView(BaseView):
                 emb2 = embedder.embed_audio(y2, sr=sr)
 
                 self._render_results(emb1, emb2)
-
 
     def _render_audio_selector(self, suffix: str, db_manager: DbManager):
         st.markdown("**Source Selection**")
@@ -163,7 +159,6 @@ class EmbeddingsPlaygroundView(BaseView):
                 st.warning("No files in database.")
 
         return None
-
 
     def _render_audio_editor(
         self, info: dict, suffix: str, db_manager: DbManager, sr: int
@@ -209,7 +204,6 @@ class EmbeddingsPlaygroundView(BaseView):
                     st.info(f"'{custom_name}' already exists.")
 
         return view.latest_y
-
 
     def _render_results(self, emb1, emb2):
         vec1 = safe_tensor_to_numpy(emb1.vector).reshape(1, -1)
