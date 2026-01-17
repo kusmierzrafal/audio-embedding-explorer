@@ -276,11 +276,14 @@ class DatabaseManagementView(BaseView):
             with db_manager.conn:
                 cursor = db_manager.conn.cursor()
                 cursor.execute("""
-                    SELECT e.audio_id, e.model_id, a.original_name, m.name as model_name
+                    SELECT e.audio_id, e.model_id, 
+                           COALESCE(a.original_name, '[DELETED AUDIO]') as audio_name, 
+                           COALESCE(m.name, '[DELETED MODEL]') as model_name
                     FROM embedding e
-                    JOIN audio a ON e.audio_id = a.id
-                    JOIN model m ON e.model_id = m.id
-                    ORDER BY a.original_name, m.name
+                    LEFT JOIN audio a ON e.audio_id = a.id
+                    LEFT JOIN model m ON e.model_id = m.id
+                    ORDER BY COALESCE(a.original_name, '[DELETED AUDIO]'), 
+                             COALESCE(m.name, '[DELETED MODEL]')
                 """)
                 embeddings = cursor.fetchall()
 
