@@ -7,6 +7,12 @@ Sections: Added / Changed / Fixed / Notes
 
 ---
 
+### [0.19.0] - 2026-01-17
+#### Fixed
+- Save new files to database button visibility
+
+---
+
 ### [0.18.0] - 2026-01-15
 #### Added
 - Standardized axis labels for visualizations

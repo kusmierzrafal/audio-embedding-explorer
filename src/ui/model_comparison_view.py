@@ -352,6 +352,7 @@ class ModelComparisonView(BaseView):
                         st.success(f"Saved {saved_count} new file(s) to database.")
                     if skipped_count > 0:
                         st.info(f"{skipped_count} file(s) already existed in database.")
+                    st.rerun()
 
         if st.session_state.get("mc_show_delete_audio_modal"):
             _confirm_remove_audio()
