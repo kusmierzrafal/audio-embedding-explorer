@@ -165,7 +165,7 @@ class EmbeddingsPlaygroundView(BaseView):
                         st.info(f"'{edited_name}' already exists in database.")
 
         if st.button(
-            "Generate embedding",
+            "Generate embeddings",
             disabled=audio_bytes is None
             or audio_view.latest_y is None
             or not text.strip(),
