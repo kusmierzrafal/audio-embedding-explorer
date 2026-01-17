@@ -91,7 +91,14 @@ def _read_uploaded_files(uploaded: List[Any]) -> List[Dict[str, Any]]:
         try:
             f.seek(0)
             data = f.read()
-            results.append({"name": f.name, "bytes": data, "mime": f.type})
+            results.append(
+                {
+                    "name": f.name,
+                    "bytes": data,
+                    "mime": f.type,
+                    "source": getattr(f, "source", "upload"),
+                }
+            )
         except Exception as e:
             st.error(f"Failed to read {getattr(f, 'name', 'file')}: {e}")
     return results
@@ -276,10 +283,10 @@ class ModelComparisonView(BaseView):
                             if audio_data:
                                 audio_file = io.BytesIO(audio_data.read())
                                 audio_file.name = audio_name
-                                audio_file.type = (
-                                    "audio/wav"  # Set type for compatibility
-                                )
+                                audio_file.type = "audio/wav"
+                                audio_file.source = "database"
                                 uploaded.append(audio_file)
+
             if uploaded:
                 new_files = _read_uploaded_files(uploaded)
                 filtered: List[Dict[str, Any]] = []
@@ -321,25 +328,30 @@ class ModelComparisonView(BaseView):
                             st.session_state["mc_show_delete_audio_modal"] = True
                             st.rerun()
 
-            # Add save to database button below the list
+            # Add save to database button below the list,
+            # only for files uploaded with input
             db_manager: DbManager = st.session_state["db_manager"]
-            if db_manager.is_connected and st.button(
-                "Save all to database", key="mc_save_all_files"
-            ):
-                saved_count = 0
-                skipped_count = 0
-                for item in files:
-                    if db_manager.insert_audio_if_not_exists(
-                        item["name"], item["bytes"]
-                    ):
-                        saved_count += 1
-                    else:
-                        skipped_count += 1
 
-                if saved_count > 0:
-                    st.success(f"Saved {saved_count} file(s) to database.")
-                if skipped_count > 0:
-                    st.info(f"{skipped_count} file(s) already existed in database.")
+            new_files = [f for f in files if f.get("source") == "upload"]
+
+            if db_manager.is_connected and new_files:
+                if st.button("Save new files to database", key="mc_save_new_files"):
+                    saved_count = 0
+                    skipped_count = 0
+
+                    for item in new_files:
+                        if db_manager.insert_audio_if_not_exists(
+                            item["name"], item["bytes"]
+                        ):
+                            saved_count += 1
+                            item["source"] = "database"
+                        else:
+                            skipped_count += 1
+
+                    if saved_count > 0:
+                        st.success(f"Saved {saved_count} new file(s) to database.")
+                    if skipped_count > 0:
+                        st.info(f"{skipped_count} file(s) already existed in database.")
 
         if st.session_state.get("mc_show_delete_audio_modal"):
             _confirm_remove_audio()

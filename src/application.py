@@ -59,14 +59,17 @@ class Application:
             self.prepare_env()
 
         # Custom CSS to control sidebar width
-        st.markdown("""
+        st.markdown(
+            """
         <style>
         section[data-testid="stSidebar"] {
             width: 21rem !important;
             background-color: #161B22 !important;
         }
         </style>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
         models_manager: ModelsManager = st.session_state["models_manager"]
 
