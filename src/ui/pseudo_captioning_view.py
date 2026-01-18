@@ -14,11 +14,11 @@ from src.ui.shared.model_status_label import model_status_label
 from src.utils.audio_utils import AudioHelper
 
 MUSIC_EMBEDDINGS_PATH = Path(
-    "assets/pseudo_captioning/music_level_captions_embeddings.json"
+    "assets/pseudo_captioning/embeddings/music_level_captions_embeddings.json"
 )
 
 SOUND_EMBEDDINGS_PATH = Path(
-    "assets/pseudo_captioning/sound_level_captions_embeddings.json"
+    "assets/pseudo_captioning/embeddings/sound_level_captions_embeddings.json"
 )
 
 
@@ -30,6 +30,72 @@ class PseudoCaptioningView(BaseView):
         "At least one of the following models must be loaded for this view to work: "
         "laion/clap-htsat-unfused, laion/clap-htsat-fused (or both)."
     )
+
+    @staticmethod
+    def _load_captions(path: Path) -> list[str]:
+        if not path.exists():
+            st.error(f"Captions file not found: {path}")
+            return []
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            st.error(f"Failed to load captions file: {e}")
+            return []
+
+        captions = data.get("captions", [])
+        if not captions:
+            st.warning(f"No captions found in {path.name}")
+
+        return captions
+
+    @staticmethod
+    def _generate_caption_embeddings(
+        clap,
+        model_id: str,
+        captions: list[str],
+        level: str,
+        output_path: Path,
+        source_file: str,
+    ) -> None:
+        with st.spinner("Computing caption embeddings..."):
+            embeddings = []
+
+            for caption in captions:
+                try:
+                    emb = clap.embed_text(caption).vector
+                    emb = np.asarray(emb).reshape(-1)
+                    embeddings.append(
+                        {
+                            "caption": caption,
+                            "embedding": emb.tolist(),
+                        }
+                    )
+                except Exception:
+                    continue
+
+            if not embeddings:
+                st.error("No caption embeddings could be generated.")
+                return
+
+            output = {
+                "meta": {
+                    "level": level,
+                    "model": model_id,
+                    "source_version": "1.0",
+                    "generated_from": source_file,
+                    "count": len(embeddings),
+                    "embedding_dim": len(embeddings[0]["embedding"]),
+                },
+                "embeddings": embeddings,
+            }
+
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(output, f, indent=2)
+
+            st.success(f"Saved {len(embeddings)} caption embeddings to {output_path}")
 
     @staticmethod
     def _load_caption_embeddings(
@@ -132,8 +198,59 @@ class PseudoCaptioningView(BaseView):
             }
         )
 
+    def _render_dev_embeddings(self):
+        st.markdown("## 🔧 Caption embeddings generation (DEV ONLY)")
+        st.warning("This mode is for developers only.")
+
+        models_manager: ModelsManager = st.session_state["models_manager"]
+
+        music_model_id = "laion/clap-htsat-unfused"
+        sound_model_id = "laion/clap-htsat-fused"
+
+        music_model = models_manager.get_model(music_model_id)
+        sound_model = models_manager.get_model(sound_model_id)
+
+        st.markdown("### Required models")
+        st.markdown(model_status_label(music_model))
+        st.markdown(model_status_label(sound_model))
+
+        if st.button("Generate caption embeddings"):
+            if music_model and music_model.is_loaded:
+                captions = self._load_captions(
+                    Path("assets/pseudo_captioning/captions/music_level_captions.json")
+                )
+                self._generate_caption_embeddings(
+                    clap=music_model.embedder,
+                    model_id=music_model_id,
+                    captions=captions,
+                    level="music",
+                    output_path=MUSIC_EMBEDDINGS_PATH,
+                    source_file="music_level_captions.json",
+                )
+
+            if sound_model and sound_model.is_loaded:
+                captions = self._load_captions(
+                    Path("assets/pseudo_captioning/captions/sound_level_captions.json")
+                )
+                self._generate_caption_embeddings(
+                    clap=sound_model.embedder,
+                    model_id=sound_model_id,
+                    captions=captions,
+                    level="sound",
+                    output_path=SOUND_EMBEDDINGS_PATH,
+                    source_file="sound_level_captions.json",
+                )
+
+            st.success("Done.")
+
     def render(self) -> None:
         self.header()
+
+        # =========================================================
+        # DEV ONLY: caption embeddings generation
+        # Set DEV_EMBEDDINGS_MODE to TRUE, to generate embeddings from captions
+        # =========================================================
+        DEV_EMBEDDINGS_MODE = False
 
         db_manager: DbManager = st.session_state["db_manager"]
         models_manager: ModelsManager = st.session_state["models_manager"]
@@ -146,6 +263,10 @@ class PseudoCaptioningView(BaseView):
 
         music_loaded = music_model.is_loaded if music_model else False
         sound_loaded = sound_model.is_loaded if sound_model else False
+
+        if DEV_EMBEDDINGS_MODE:
+            self._render_dev_embeddings()
+            return
 
         st.markdown("### Required models")
 
