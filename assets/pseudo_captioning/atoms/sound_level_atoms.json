@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "level": "sound",
+    "version": "1.0",
+    "description": "Atoms for sound-level pseudo-captioning (CLAP fused)"
+  },
+  "sound_types": [
+    "impact",
+    "hit",
+    "strike",
+    "click",
+    "pop",
+    "snap",
+    "thump",
+    "drone",
+    "noise",
+    "tone",
+    "buzz",
+    "hum",
+    "texture",
+    "rattle",
+    "whoosh",
+    "swell",
+    "pulse",
+    "glitch"
+  ],
+  "materials": [
+    "metallic",
+    "wooden",
+    "plastic",
+    "synthetic",
+    "organic",
+    "glass",
+    "rubber",
+    "stone",
+    "paper",
+    "digital",
+    "granular"
+  ],
+  "envelopes": [
+    "short",
+    "long",
+    "sustained",
+    "sharp",
+    "soft",
+    "slow",
+    "fast",
+    "looping"
+  ],
+  "space": [
+    "dry",
+    "reverberant",
+    "echoing",
+    "wide",
+    "narrow",
+    "distant",
+    "close",
+    "ambient"
+  ]
+}

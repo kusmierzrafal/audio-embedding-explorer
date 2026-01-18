@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "level": "music",
+    "version": "1.0",
+    "description": "Atoms for music-level pseudo-captioning (CLAP unfused)"
+  },
+"instruments": [
+  "acoustic guitar",
+  "electric guitar",
+  "bass",
+  "synth bass",
+  "piano",
+  "electric piano",
+  "synth",
+  "synth pad",
+  "synth lead",
+  "strings",
+  "violin",
+  "cello",
+  "harp",
+  "brass",
+  "trumpet",
+  "trombone",
+  "flute",
+  "clarinet",
+  "saxophone",
+  "drums",
+  "percussion",
+  "organ",
+  "choir",
+  "vocal"
+],
+
+  "roles": [
+    "melody",
+    "riff",
+    "chords",
+    "progression",
+    "bass line",
+    "lead line",
+    "accompaniment",
+    "arpeggio",
+    "groove",
+    "pattern"
+  ],
+"descriptors": [
+  "clean",
+  "distorted",
+  "warm",
+  "dark",
+  "bright",
+  "soft",
+  "aggressive",
+  "lo-fi",
+  "dry",
+  "reverberant",
+  "smooth",
+  "harsh",
+  "mellow",
+  "punchy",
+  "heavy",
+  "compressed",
+  "raw",
+  "wide",
+  "narrow"
+]
+}
